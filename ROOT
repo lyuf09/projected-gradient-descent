@@ -4,3 +4,4 @@ session Projected_Gradient_Descent = "HOL-Analysis" +
     Gradient_Preliminaries
     Convex_Differentiable
     Smooth_Convex
+    Gradient_Descent
