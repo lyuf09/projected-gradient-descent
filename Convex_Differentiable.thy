@@ -343,6 +343,99 @@ lemma convex_on_affine_lineD_open01:
   using assms(4) assms(5)
   by simp
 
+subsection \<open>First-order lower bound for convex differentiable functions\<close>
+
+lemma convex_line_secant_slope_bound:
+  fixes f :: "'a::real_inner \<Rightarrow> real"
+  assumes conv: "convex_on S f"
+    and x: "x \<in> S"
+    and y: "y \<in> S"
+    and tpos: "0 < t"
+    and tle: "t \<le> 1"
+  shows "(f (x + t *\<^sub>R (y - x)) - f x) / t \<le> f y - f x"
+proof -
+  have bound:
+    "f (x + t *\<^sub>R (y - x)) \<le> (1 - t) * f x + t * f y"
+    using convex_on_affine_lineD[OF conv x y] tpos tle
+    by simp
+
+  have "f (x + t *\<^sub>R (y - x)) - f x \<le> t * (f y - f x)"
+    using bound
+    by (simp add: algebra_simps)
+
+  then show ?thesis
+    using tpos
+    by (simp add: field_simps)
+qed
+
+lemma has_gradient_line_slope_tendsto:
+  fixes f :: "'a::real_inner \<Rightarrow> real"
+  assumes grad: "has_gradient f x g"
+  shows "((\<lambda>t::real. (f (x + t *\<^sub>R d) - f x) / t) \<longlongrightarrow> inner d g) (at_right 0)"
+proof -
+  have D:
+    "((\<lambda>t::real. f (x + t *\<^sub>R d)) has_field_derivative inner d g) (at 0)"
+    using has_gradient_restrict_to_line_at_0[OF grad, of d] .
+
+  have D_right:
+    "((\<lambda>t::real. f (x + t *\<^sub>R d)) has_field_derivative inner d g)
+       (at (0::real) within {0<..})"
+    using D
+    unfolding has_field_derivative_def
+    by (rule has_derivative_at_withinI)
+
+  show ?thesis
+    using D_right
+    unfolding has_field_derivative_iff
+    by simp
+qed
+
+lemma convex_has_gradient_supports:
+  fixes f :: "'a::real_inner \<Rightarrow> real"
+  assumes conv: "convex_on S f"
+    and grad: "has_gradient f x g"
+    and x: "x \<in> S"
+    and y: "y \<in> S"
+  shows "f x + inner g (y - x) \<le> f y"
+proof -
+  define d where "d = y - x"
+
+  have lim:
+    "((\<lambda>t::real. (f (x + t *\<^sub>R d) - f x) / t) \<longlongrightarrow> inner d g) (at_right 0)"
+    using has_gradient_line_slope_tendsto[OF grad, of d] .
+
+  have ev01:
+    "eventually (\<lambda>t::real. t \<in> {0<..<1}) (at_right 0)"
+    using eventually_at_right_real[OF zero_less_one] .
+
+  have ev:
+    "eventually
+      (\<lambda>t::real. (f (x + t *\<^sub>R d) - f x) / t \<le> f y - f x)
+      (at_right 0)"
+    using ev01
+  proof eventually_elim
+    fix t :: real
+    assume t: "t \<in> {0<..<1}"
+    then have tpos: "0 < t"
+      by auto
+    from t have tle: "t \<le> 1"
+      by auto
+
+    show "(f (x + t *\<^sub>R d) - f x) / t \<le> f y - f x"
+      unfolding d_def
+      using convex_line_secant_slope_bound[OF conv x y tpos tle] .
+  qed
+
+  have nontriv: "\<not> trivial_limit (at_right (0::real))"
+    by simp
+
+  have "f y - f x \<ge> inner d g"
+    using tendsto_upperbound[OF lim ev nontriv] .
+
+  then show ?thesis
+    unfolding d_def
+    by (simp add: inner_commute algebra_simps)
+qed
 
 subsection \<open>Convex differentiable functions with a named gradient field\<close>
 
@@ -418,6 +511,45 @@ proof (rule convex_differentiable_onI)
     by (rule has_gradient_on_subset)
 qed
 
+lemma convex_differentiable_on_imp_gradient_lower_bound_on:
+  assumes cd: "convex_differentiable_on S f G"
+  shows "gradient_lower_bound_on S f G"
+proof (rule gradient_lower_bound_onI)
+  fix x y
+  assume x: "x \<in> S"
+    and y: "y \<in> S"
+
+  have conv: "convex_on S f"
+    using cd
+    by (rule convex_differentiable_onD_convex_on)
+
+  have grad: "has_gradient f x (G x)"
+    using cd x
+    by (rule convex_differentiable_on_gradientD)
+
+  show "f x + inner (G x) (y - x) \<le> f y"
+    using convex_has_gradient_supports[OF conv grad x y] .
+qed
+
+lemma convex_differentiable_on_imp_supports_on:
+  assumes cd: "convex_differentiable_on S f G"
+  shows "supports_on S f G"
+  using gradient_lower_bound_on_imp_supports_on[
+      OF convex_differentiable_on_imp_gradient_lower_bound_on[OF cd]] .
+
+lemma convex_differentiable_on_supports_at:
+  assumes cd: "convex_differentiable_on S f G"
+    and x: "x \<in> S"
+  shows "supports_at S f x (G x)"
+  using convex_differentiable_on_imp_supports_on[OF cd] x
+  by (rule supports_onD)
+
+lemma convex_differentiable_on_foc_imp_global_min_on:
+  assumes cd: "convex_differentiable_on S f G"
+    and foc: "first_order_condition_at S (G x) x"
+  shows "global_min_on S f x"
+  using gradient_lower_bound_on_and_foc_imp_global_min_on[
+      OF convex_differentiable_on_imp_gradient_lower_bound_on[OF cd] foc] .
 
 subsection \<open>Locale form\<close>
 
@@ -462,23 +594,39 @@ lemma convex_bound_on_segment:
   shows "f (x + scaleR t (y - x)) \<le> (1 - t) * f x + t * f y"
   using convex_on_affine_lineD[OF convex_f assms] .
 
+lemma gradient_lower_bound:
+  "gradient_lower_bound_on S f G"
+proof (rule gradient_lower_bound_onI)
+  fix x y
+  assume x: "x \<in> S"
+    and y: "y \<in> S"
+
+  show "f x + inner (G x) (y - x) \<le> f y"
+    using convex_has_gradient_supports[OF convex_f has_gradient[OF x] x y] .
+qed
+
+lemma supports:
+  assumes "x \<in> S"
+  shows "supports_at S f x (G x)"
+  using gradient_lower_bound_on_imp_supports_on[OF gradient_lower_bound] assms
+  by (rule supports_onD)
+
+lemma foc_imp_global_min:
+  assumes "first_order_condition_at S (G x) x"
+  shows "global_min_on S f x"
+  using gradient_lower_bound_on_and_foc_imp_global_min_on[
+      OF gradient_lower_bound assms] .
+
 end
 
-
 text \<open>
-Next target theorem.
+The main bridge theorem of this file is convex_has_gradient_supports:
+for a convex function that has a gradient at x, the gradient defines a
+supporting affine lower bound on the feasible set.
 
-For the next theory pass, we want to prove the following mathematical statement:
-
-  convex_on S f
-  has_gradient f x g
-  x \<in> S
-  y \<in> S
-  \<Longrightarrow> f x + inner g (y - x) \<le> f y
-
-Once this is available, it will connect convex differentiability with
-supports_at and gradient_lower_bound_on.  That theorem is the real bridge from
-convex analysis to gradient descent.
+As a consequence, every convex differentiable function with a named gradient
+field satisfies gradient_lower_bound_on. Combined with the variational
+first-order condition, this yields global optimality.
 \<close>
 
 end
