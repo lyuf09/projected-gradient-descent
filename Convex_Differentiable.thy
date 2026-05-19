@@ -5,19 +5,26 @@ begin
 section \<open>Convex differentiable functions and first-order certificates\<close>
 
 text \<open>
-This theory introduces the optimization language used later for gradient descent
-and projected gradient descent.
+This theory introduces the first-order certificate language used later for
+gradient descent and projected gradient descent.
 
-The main purpose of this file is not yet to prove the full differentiable convex
-first-order theorem.  Instead, we first isolate the certificate language:
+The file isolates four basic notions:
 
   • global minimizers on a feasible set;
   • first-order variational inequalities;
   • supporting affine lower bounds;
   • convex differentiable functions with a named gradient field.
 
-The central theorem to prove next is that, for a convex differentiable function,
-the gradient gives a supporting affine lower bound.
+The main result is the standard first-order supporting-hyperplane property:
+if f is convex and has gradient g at x, then
+
+  f x + inner g (y - x) \<le> f y
+
+for every feasible y.
+
+Consequently, every convex differentiable function with a named gradient field
+satisfies a global gradient lower-bound property.  Combined with the
+variational first-order condition, this gives a global optimality certificate.
 \<close>
 
 
@@ -551,6 +558,19 @@ lemma convex_differentiable_on_foc_imp_global_min_on:
   using gradient_lower_bound_on_and_foc_imp_global_min_on[
       OF convex_differentiable_on_imp_gradient_lower_bound_on[OF cd] foc] .
 
+subsection \<open>Main first-order consequences\<close>
+
+theorem convex_differentiable_on_supporting_hyperplanes:
+  assumes cd: "convex_differentiable_on S f G"
+  shows "supports_on S f G"
+  using convex_differentiable_on_imp_supports_on[OF cd] .
+
+theorem convex_differentiable_on_first_order_sufficient:
+  assumes cd: "convex_differentiable_on S f G"
+    and foc: "first_order_condition_at S (G x) x"
+  shows "global_min_on S f x"
+  using convex_differentiable_on_foc_imp_global_min_on[OF cd foc] .
+
 subsection \<open>Locale form\<close>
 
 locale convex_differentiable =
@@ -620,13 +640,16 @@ lemma foc_imp_global_min:
 end
 
 text \<open>
-The main bridge theorem of this file is convex_has_gradient_supports:
-for a convex function that has a gradient at x, the gradient defines a
-supporting affine lower bound on the feasible set.
+This completes the first-order convex certificate layer.
 
-As a consequence, every convex differentiable function with a named gradient
-field satisfies gradient_lower_bound_on. Combined with the variational
-first-order condition, this yields global optimality.
+The main bridge theorem is @{thm convex_has_gradient_supports}: for a convex
+function that has a gradient at x, the gradient defines a supporting affine
+lower bound on the feasible set.  The bundled consequence
+@{thm convex_differentiable_on_first_order_sufficient} gives the usual
+first-order sufficient condition for global optimality in convex optimization.
+
+Later theories use these results as the first-order part of the analysis of
+smooth gradient descent and projected gradient descent.
 \<close>
 
 end
