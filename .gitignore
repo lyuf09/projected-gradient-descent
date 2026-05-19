@@ -1,0 +1,16 @@
+.DS_Store
+*~
+*.orig
+
+# Isabelle / generated build artifacts
+output/
+browser_info/
+heaps/
+log/
+*.aux
+*.bbl
+*.blg
+*.log
+*.out
+*.toc
+*.pdf
