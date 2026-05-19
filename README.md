@@ -2,29 +2,28 @@
 
 This repository is a work-in-progress Isabelle/HOL formalization project for first-order methods in smooth convex optimization.
 
-The current development started from projected gradient descent, but the broader goal is to build a reusable optimization library for Isabelle/HOL. The project develops general infrastructure for differentiable convex functions, smoothness inequalities, descent estimates, gradient-type algorithms, Euclidean projection, variational inequalities, and convergence-rate proofs.
+The project originally started from projected gradient descent, but its broader goal is to develop reusable Isabelle/HOL infrastructure for smooth convex optimization. The intended contribution is not only a formal proof of one algorithm, but a collection of definitions, lemmas, locales, and proof templates that can support future formalizations of first-order optimization methods.
 
-Projected gradient descent is intended to be a central application of this framework, rather than the only contribution.
-
-The project is designed with an AFP-style structure in mind. Definitions should be modular, theorem statements should be reusable, and algorithmic convergence proofs should be separated from low-level analytic facts whenever possible.
+Projected gradient descent is treated as a central application of the framework.
 
 ## Project vision
 
-The long-term goal is to provide a reusable formal library for first-order convex optimization in Isabelle/HOL.
+The long-term goal is to provide an AFP-style reusable library for first-order methods in smooth convex optimization.
 
 The intended scope includes:
 
-1. gradient and differentiability infrastructure for real inner product spaces;
-2. first-order optimality certificates for convex differentiable functions;
-3. smoothness assumptions and quadratic upper-bound inequalities;
+1. optimization-oriented gradient infrastructure;
+2. first-order certificates for convex differentiable functions;
+3. smoothness assumptions and descent-lemma-style upper bounds;
 4. abstract descent estimates and telescoping proof patterns;
 5. gradient descent and its convergence guarantees;
-6. Euclidean projection onto convex feasible sets;
+6. Euclidean projection onto closed convex feasible sets;
 7. projection variational inequalities and fixed-point characterizations;
 8. projected gradient descent for constrained smooth convex minimization;
-9. optional extensions to strong convexity, projected gradient mappings, and concrete examples.
+9. projected-gradient mappings and optimality characterizations;
+10. optional extensions to strong convexity, linear convergence, and concrete examples.
 
-The central mathematical theme is that many first-order methods can be proved correct by combining a small number of reusable ingredients:
+The central mathematical idea is that many first-order convergence proofs can be decomposed into a small number of reusable ingredients:
 
 ```text
 convex first-order lower bounds
@@ -35,11 +34,27 @@ convex first-order lower bounds
 = convergence guarantees for first-order methods
 ```
 
-The current repository therefore aims to formalize not only one algorithm, but also the surrounding proof infrastructure that can later support related methods.
+The repository is therefore organized around reusable proof infrastructure rather than a single isolated theorem.
+
+## Motivation
+
+First-order methods are among the basic tools of convex optimization. Their convergence analyses usually rely on a recurring collection of elementary but delicate ingredients:
+
+* differentiability and gradients;
+* convex first-order lower bounds;
+* smoothness upper bounds;
+* descent inequalities;
+* projection inequalities;
+* telescoping sums;
+* fixed-point and optimality equivalences.
+
+In informal mathematics, these ingredients are often reused across gradient descent, projected gradient descent, proximal gradient methods, and related algorithms. The aim of this project is to make a clean Isabelle/HOL version of this infrastructure.
+
+The project is intended to be useful for later Isabelle developments in optimization, especially developments that need smooth convex analysis and gradient-type convergence proofs.
 
 ## Main algorithmic target
 
-The motivating algorithm is projected gradient descent:
+The motivating constrained algorithm is projected gradient descent:
 
 ```text
 x_{k+1} = P_C (x_k - alpha * grad f x_k)
@@ -50,18 +65,18 @@ Here:
 * `C` is a feasible set;
 * `P_C` is Euclidean projection onto `C`;
 * `f` is a convex differentiable function;
-* `grad f` is its gradient;
+* `grad f` is the gradient of `f`;
 * `alpha` is a step size.
 
-The intended final convergence theorem is the standard O(1 / N) rate for smooth convex minimization over a closed convex feasible set.
-
-A typical target statement has the form:
+A typical target convergence theorem is the standard O(1 / N) rate for smooth convex minimization over a closed convex feasible set:
 
 ```text
 f (x_N) - f x_star <= norm (x_0 - x_star)^2 / (2 * alpha * N)
 ```
 
 under suitable assumptions on convexity, smoothness, feasibility, existence of a minimizer, and the step size.
+
+The projected-gradient part is not yet complete.
 
 ## Current status
 
@@ -74,25 +89,36 @@ Smooth_Convex.thy
 Gradient_Descent.thy
 ```
 
-Together, these files provide the first part of the formal infrastructure needed for gradient descent and projected gradient descent.
+Together, these files provide the first layer of the formal infrastructure needed for gradient descent and projected gradient descent.
 
-The currently completed layers are:
+Currently completed or partially completed components include:
 
-* gradient preliminaries;
-* named gradient fields on sets;
-* first-order convex optimality certificates;
+* gradient predicates and named gradient fields;
+* uniqueness and basic rules for gradients;
+* affine-line restrictions and directional derivatives;
+* first-order convex lower-bound certificates;
+* sufficient first-order conditions for global optimality in convex problems;
 * smooth upper-bound interfaces;
+* explicit gradient-step maps;
 * one-step descent estimates for gradient steps;
 * gradient descent recurrences;
 * monotonicity of objective values along gradient descent iterates.
 
-The projected-gradient layer is not yet complete.
+The following components are not yet complete:
 
-## Theory files
+* convergence-rate theorems for gradient descent;
+* Euclidean projection theory packaged for optimization;
+* projected gradient descent;
+* projected-gradient convergence rates;
+* strong convexity and linear convergence;
+* concrete examples and instantiations;
+* AFP document setup.
+
+## Theory overview
 
 ### `Gradient_Preliminaries.thy`
 
-This file introduces a lightweight optimization-oriented wrapper around Isabelle/HOL's Fréchet derivative infrastructure.
+This file introduces an optimization-oriented wrapper around Isabelle/HOL's derivative infrastructure.
 
 Main components include:
 
@@ -104,11 +130,11 @@ Main components include:
 * elementary gradient rules;
 * affine-line restrictions;
 * directional derivatives along lines;
-* inner-product and squared-norm algebra used later in descent and convergence proofs.
+* inner-product and squared-norm algebra used later in descent proofs.
 
-This theory is intentionally independent of convexity and smoothness.
+This theory is intentionally independent of convexity, smoothness, and algorithms.
 
-Its role is to let later files state optimization results in terms of gradients and inner products, rather than repeatedly unfolding raw derivative maps.
+Its role is to make later optimization statements readable in terms of gradients and inner products, instead of repeatedly unfolding low-level derivative maps.
 
 ### `Convex_Differentiable.thy`
 
@@ -123,7 +149,7 @@ Main components include:
 * convex differentiability with a named gradient field, via `convex_differentiable_on`;
 * a locale form for convex differentiable functions.
 
-The main theorem of this file is the first-order supporting-hyperplane property for convex differentiable functions:
+The central theorem is the first-order supporting-hyperplane property for convex differentiable functions:
 
 ```text
 convex_on S f
@@ -146,27 +172,25 @@ convex_differentiable_on_supporting_hyperplanes
 convex_differentiable_on_first_order_sufficient
 ```
 
-The second theorem states the usual first-order sufficient condition for global optimality in convex optimization: for a convex differentiable function, a feasible point satisfying the variational first-order condition is a global minimizer.
-
-This layer is intended to be reusable for projected gradient descent, Frank-Wolfe-type methods, constrained optimality conditions, and other first-order convex optimization developments.
+This layer is meant to be reused by projected gradient descent, constrained optimality conditions, Frank-Wolfe-style methods, and other first-order convex optimization developments.
 
 ### `Smooth_Convex.thy`
 
-This file introduces the smoothness layer used for descent proofs.
+This file introduces the smoothness interface used for descent arguments.
 
-The central interface is the quadratic upper-bound property:
+The central assumption is the quadratic upper-bound property:
 
 ```text
 f y <= f x + inner (G x) (y - x) + (L / 2) * norm (y - x)^2
 ```
 
-This is the standard descent-lemma form of smoothness. The file packages this property directly as:
+This is the standard descent-lemma form of smoothness. The file packages this property as:
 
 ```text
 smooth_upper_bound_on L S f G
 ```
 
-so that later algorithmic proofs can use it without repeatedly unfolding analytic details.
+so that algorithmic proofs can use it directly.
 
 Main components include:
 
@@ -175,7 +199,7 @@ Main components include:
 * smooth convex functions, via `smooth_convex_on`;
 * the explicit gradient step map `gradient_step`;
 * algebraic identities for gradient steps;
-* one-step descent estimates from the smooth upper-bound property;
+* one-step descent estimates from smooth upper bounds;
 * a locale form for smooth convex functions.
 
 The main one-step estimate has the form:
@@ -186,18 +210,18 @@ f (gradient_step alpha G x)
    + (L / 2) * alpha^2 * norm (G x)^2
 ```
 
-Under the step-size condition `alpha * L <= 1`, this yields the cleaner decrease estimate:
+Under the step-size condition `alpha * L <= 1`, this gives the cleaner decrease estimate:
 
 ```text
 f (gradient_step alpha G x)
 <= f x - (alpha / 2) * norm (G x)^2
 ```
 
-These results serve as the core descent estimates for the gradient descent theory and the later projected gradient descent theory.
+This file provides the basic descent mechanism used by the algorithmic layers.
 
 ### `Gradient_Descent.thy`
 
-This file lifts the one-step estimates from `Smooth_Convex.thy` to gradient descent sequences.
+This file lifts one-step gradient-step estimates to gradient descent sequences.
 
 Main components include:
 
@@ -214,15 +238,15 @@ The recurrence has the form:
 x (Suc n) = gradient_step alpha G (x n)
 ```
 
-The current main conclusion is that, under the smooth upper-bound assumptions and a suitable step size, the objective values along gradient descent iterates are nonincreasing.
+The current main conclusion is that, under suitable smoothness and step-size assumptions, the objective values along gradient descent iterates are nonincreasing.
 
-This file is the first algorithmic layer of the project. It is deliberately structured so that later convergence-rate proofs can reuse the recurrence and monotonicity results.
+This file is the first algorithmic layer of the project. It is structured so that later convergence-rate proofs can reuse the recurrence and descent results.
 
-## Planned library structure
+## Planned development
 
 The intended final development is broader than a single projected-gradient theorem.
 
-A possible AFP-style structure is:
+A possible final structure is:
 
 ```text
 Projected_Gradient_Descent/
@@ -251,19 +275,17 @@ The current repository still uses a flat theory layout. The structure above desc
 
 ## Mathematical roadmap
 
-The development is organized around the following proof pipeline.
-
 ### 1. Gradient infrastructure
 
-The first layer packages Fréchet derivatives into optimization-style gradient statements.
+The first layer packages derivatives into optimization-style gradient statements.
 
-This makes later proofs read in terms of gradients and inner products rather than raw derivative maps.
+The goal is to make later proofs state assumptions and conclusions in the language of gradients, inner products, and norm identities.
 
 ### 2. First-order convex certificates
 
 The second layer proves that convex differentiability implies supporting affine lower bounds.
 
-This gives the bridge:
+The intended proof pipeline is:
 
 ```text
 convex differentiability
@@ -272,42 +294,56 @@ convex differentiability
 ==> global minimizers
 ```
 
-This layer is useful beyond gradient descent. It is the basic first-order optimality interface for differentiable convex optimization.
+This layer is useful beyond gradient descent. It provides a reusable first-order optimality interface for differentiable convex optimization.
 
 ### 3. Smooth upper bounds
 
 The third layer packages the smoothness upper-bound inequality used in descent proofs.
 
-This avoids committing too early to a particular analytic derivation of the descent lemma. The current interface can later be connected to more primitive Lipschitz-gradient assumptions.
+The current interface treats the quadratic upper-bound property as an explicit assumption. This keeps algorithmic proofs independent of the more analytic proof that Lipschitz gradients imply the descent lemma.
 
-The key reusable idea is:
+A later extension may connect `lipschitz_gradient_on` to `smooth_upper_bound_on`.
 
-```text
-smooth upper bound + algorithmic step identity
-==> one-step descent inequality
-```
+### 4. Abstract descent templates
 
-### 4. Gradient descent
+A major goal is to avoid reproving every convergence theorem from scratch.
 
-The fourth layer defines gradient descent iterates and proves basic descent properties.
-
-The current theory already defines the recurrence and proves monotonicity of the objective values under suitable assumptions.
-
-The next goal for this layer is to prove convergence-style estimates, such as:
+The project should eventually include abstract proof templates of the following form:
 
 ```text
-sum of squared gradient norms is bounded
-minimum gradient norm has an O(1 / N) bound
-function-value gap has an O(1 / N) bound under convexity
+one-step progress inequality
++ telescoping
+==> convergence rate
 ```
 
-These results should be organized so that later methods can reuse the same telescoping patterns.
+This would make the development reusable for future formalizations of other first-order methods.
 
-### 5. Projection theory
+### 5. Gradient descent rates
 
-The next major layer will formalize the geometry of Euclidean projection onto convex feasible sets.
+The next algorithmic milestone is to strengthen `Gradient_Descent.thy` with convergence-rate estimates.
 
-The intended components include:
+Planned results include:
+
+* bounded sums of squared gradient norms;
+* minimum-gradient-norm bounds;
+* O(1 / N) function-value convergence under convexity;
+* reusable telescoping lemmas for descent methods.
+
+A typical target statement is:
+
+```text
+f (x N) - f x_star <= norm (x 0 - x_star)^2 / (2 * alpha * N)
+```
+
+under the usual smooth convex assumptions.
+
+### 6. Projection theory for optimization
+
+The next major layer is a projection-facing optimization interface.
+
+HOL-Analysis already contains substantial convex-geometric infrastructure. The purpose of this project is not to duplicate low-level geometry unnecessarily, but to package the relevant facts in an optimization-oriented form.
+
+Planned components include:
 
 * projection belongs to the feasible set;
 * projection minimizes distance to the original point;
@@ -316,7 +352,7 @@ The intended components include:
 * fixed-point characterizations of projected steps;
 * projected gradient mapping.
 
-The key projected-gradient inequality is expected to come from the projection variational inequality:
+The key inequality for projected methods has the form:
 
 ```text
 inner (x - P_C x) (y - P_C x) <= 0
@@ -324,12 +360,12 @@ inner (x - P_C x) (y - P_C x) <= 0
 
 for every feasible point `y`.
 
-### 6. Projected gradient descent
+### 7. Projected gradient descent
 
 The projected-gradient layer will combine:
 
-* the smooth upper-bound inequality;
-* the projection variational inequality;
+* smooth upper-bound inequalities;
+* projection variational inequalities;
 * convex first-order lower bounds;
 * squared-norm algebra;
 * telescoping estimates.
@@ -340,28 +376,29 @@ The target update is:
 x (Suc n) = P_C (x n - alpha * grad f (x n))
 ```
 
-The intended first milestones are:
+The intended milestones are:
 
 * feasibility of all iterates;
-* one-step projected descent;
-* monotonicity of objective values, when applicable;
-* a basic O(1 / N) convergence rate for smooth convex minimization.
+* one-step projected descent estimates;
+* monotonicity of objective values, where applicable;
+* fixed-point characterization of projected-gradient steps;
+* O(1 / N) convergence for smooth convex constrained minimization.
 
-### 7. Strong convexity and linear rates
+### 8. Strong convexity and linear convergence
 
 A later extension may add strong convexity.
 
-The intended components include:
+Planned components include:
 
 * `strongly_convex_on`;
-* equivalent lower-bound formulations;
+* lower-bound formulations of strong convexity;
 * uniqueness of minimizers under strong convexity;
 * linear convergence of gradient descent;
 * linear convergence of projected gradient descent under suitable assumptions.
 
-This layer is not required for the first AFP submission, but it would make the library substantially more useful.
+This layer is not required for the first complete version, but it would make the library substantially more useful.
 
-### 8. Concrete examples
+### 9. Concrete examples
 
 The final development should include examples showing that the framework can be instantiated.
 
@@ -373,15 +410,30 @@ Possible examples include:
 * Euclidean ball constraints;
 * affine subspace constraints.
 
-These examples are intended to demonstrate that the abstract assumptions are usable in concrete optimization problems.
+The purpose of the examples is to demonstrate that the abstract assumptions are usable in concrete optimization problems.
+
+## Relation to existing work
+
+This project is intended to complement, not replace, existing Isabelle/HOL optimization developments.
+
+In particular, the AFP entry `Unconstrained_Optimization` develops minimizers and first-/second-order optimality conditions for unconstrained optimization. The present project has a different emphasis: smooth convex first-order methods, descent estimates, projection-based constrained optimization, and convergence-rate proofs for gradient-type algorithms.
+
+The AFP entry `Simplex` formalizes an incremental simplex algorithm for linear constraints and SMT-style applications. That development is algorithmic, but its mathematical setting is different from smooth convex first-order methods.
+
+There are also formalizations of convex optimization algorithms in other theorem provers, including Lean developments of first-order methods and convergence rates. This repository does not claim priority over the general topic of formalizing gradient descent. Its intended contribution is an Isabelle/HOL and AFP-compatible reusable library layer for smooth convex optimization and projected first-order methods.
+
+A safe summary of the intended contribution is:
+
+```text
+This development provides reusable Isabelle/HOL infrastructure for smooth convex first-order methods,
+building on HOL-Analysis and complementing existing Isabelle optimization entries.
+```
 
 ## Design principles
 
-The development follows several design principles.
-
 ### Reusable interfaces
 
-Core mathematical assumptions are packaged as reusable predicates, for example:
+Core mathematical assumptions are packaged as reusable predicates and locales, such as:
 
 ```text
 has_gradient_on
@@ -391,46 +443,45 @@ smooth_convex_on
 gradient_descent_iterates
 ```
 
-This keeps later algorithmic theorems independent of unnecessary low-level details.
+The goal is to make later theorem statements stable and easy to reuse.
 
 ### Named gradient fields
 
-The project consistently uses a named gradient field `G` rather than repeatedly writing `gradient f x`.
+The project consistently allows the use of a named gradient field `G`.
 
-This makes theorem statements cleaner and avoids unnecessary dependence on choice-style definitions.
+This keeps theorem statements cleaner and avoids unnecessary dependence on choice-style definitions of gradients.
 
 ### Separation of analytic and algorithmic layers
 
 The smoothness upper-bound property is currently treated as an explicit interface.
 
-This allows the algorithmic gradient descent proofs to proceed independently of the more delicate analytic proof that Lipschitz gradients imply the descent lemma.
+This allows gradient descent and projected gradient descent proofs to proceed independently of the more delicate analytic proof that Lipschitz gradients imply the descent lemma.
 
-A later extension may prove that implication as an additional theorem.
+### Projection as an optimization interface
 
-### Abstract descent templates
+Projection theory should be exposed through optimization-oriented lemmas, rather than only through raw metric geometry statements.
 
-A major goal is to avoid proving every convergence theorem from scratch.
+The intended interface should make it easy to prove projected-method results from projection variational inequalities.
 
-The project should eventually include abstract proof templates of the following form:
+### Abstract convergence templates
+
+The project should eventually contain reusable convergence templates.
+
+The intended pattern is:
 
 ```text
-one-step progress inequality
-+ telescoping
+algorithm-specific one-step inequality
++ general telescoping theorem
 ==> convergence rate
 ```
 
-This would make the library reusable for future formalizations of other first-order methods.
+This is meant to reduce duplication in future formalizations of first-order methods.
 
-### AFP-style structure
+### Conservative AFP claims
 
-The repository is being developed with an AFP-style submission in mind:
+The project should avoid overly broad novelty claims.
 
-* theory files should build cleanly;
-* definitions should be reusable;
-* theorem names should be stable and descriptive;
-* text blocks should explain the mathematical role of each layer;
-* the final development should avoid experimental or unfinished material;
-* the README should clearly distinguish completed results from planned extensions.
+It should not claim to be the first formalization of gradient descent in any theorem prover. Instead, it should emphasize its Isabelle/HOL setting, its AFP-compatible organization, and its reusable smooth convex optimization interfaces.
 
 ## Build instructions
 
@@ -451,17 +502,20 @@ The document-generation setup may require additional AFP-style files before subm
 
 ## Current next steps
 
-The immediate next step is no longer to add `Gradient_Descent.thy`; that file is now present.
+The immediate next step is to strengthen the current gradient descent layer and then move toward projection.
 
-The next milestones are:
+Suggested next milestones:
 
-1. strengthen `Gradient_Descent.thy` with finite-sum and convergence-rate estimates;
-2. introduce `Projection_Optimization.thy`;
-3. prove the projection variational inequality and related projection facts;
-4. define projected gradient descent iterates;
-5. prove feasibility and one-step projected descent;
-6. prove the basic projected-gradient convergence theorem;
-7. add examples showing how the framework can be instantiated.
+1. add `Gradient_Descent_Rates.thy`;
+2. prove finite-sum and telescoping estimates for gradient descent;
+3. introduce `Projection_Optimization.thy`;
+4. package projection facts in an optimization-facing form;
+5. define projected gradient descent iterates;
+6. prove feasibility of projected-gradient iterates;
+7. prove one-step projected descent estimates;
+8. prove the basic O(1 / N) projected-gradient convergence theorem;
+9. add concrete examples;
+10. prepare the AFP document setup.
 
 A minimal next milestone is:
 
@@ -495,9 +549,10 @@ Completed or partially completed layers:
 Not yet complete:
 
 * convergence-rate theorems for gradient descent;
-* Euclidean projection theory;
+* Euclidean projection theory packaged for optimization;
 * projected gradient descent;
 * projected-gradient convergence rates;
+* strong convexity and linear rates;
 * concrete examples;
 * AFP document setup.
 
@@ -507,15 +562,16 @@ The projected-gradient convergence theorem is not yet complete.
 
 The intended contribution is a reusable Isabelle/HOL development for smooth convex optimization and first-order methods.
 
-The project aims to be useful not only as a formalization of projected gradient descent, but also as infrastructure for future formalizations of optimization algorithms.
+The project aims to be useful not only as a formalization of projected gradient descent, but also as infrastructure for future Isabelle/HOL formalizations of optimization algorithms.
 
-In particular, the reusable parts are expected to be:
+The most reusable components are expected to be:
 
 * optimization-oriented gradient interfaces;
 * first-order convexity certificates;
 * smooth upper-bound descent lemmas;
 * abstract descent and telescoping patterns;
 * projection inequalities for constrained optimization;
-* algorithmic convergence proofs for gradient-type methods.
+* projected-gradient optimality characterizations;
+* convergence proofs for gradient-type methods.
 
 The long-term goal is that future Isabelle/HOL developments in convex optimization can import this project instead of rebuilding these foundations from scratch.
