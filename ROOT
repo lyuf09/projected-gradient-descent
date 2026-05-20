@@ -1,5 +1,7 @@
+chapter AFP
+
 session Projected_Gradient_Descent = "HOL-Analysis" +
-  options [document = false]
+  options [timeout = 600]
   theories
     Gradient_Preliminaries
     Convex_Differentiable
