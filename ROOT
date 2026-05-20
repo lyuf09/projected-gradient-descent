@@ -16,3 +16,4 @@ session Projected_Gradient_Descent = "HOL-Analysis" +
     Projected_Gradient_Descent_Linear_Rate
     Lipschitz_Smoothness
     Examples_Quadratic
+    Projected_Gradient_Descent
