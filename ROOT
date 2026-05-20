@@ -14,3 +14,4 @@ session Projected_Gradient_Descent = "HOL-Analysis" +
     Projected_Gradient_Mapping
     Strong_Convex
     Projected_Gradient_Descent_Linear_Rate
+    Lipschitz_Smoothness
