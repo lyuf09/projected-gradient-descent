@@ -196,7 +196,7 @@ The main remaining tasks are:
 3. add a short AFP document explaining the mathematical structure of the entry;
 4. add a bibliography citing standard references on first-order convex optimization;
 5. check that all main theorem names form a stable public interface;
-6. remove or rewrite any temporary comments, TODOs, or development-only notes;
+6. polish comments and theory text for AFP style;
 7. check for `sorry`, `sledgehammer`, `smt_oracle`, and `back`;
 8. check for unnamed `[simp]` rules;
 9. run the full Isabelle build and document build before submission.
