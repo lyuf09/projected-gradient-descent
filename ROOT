@@ -7,3 +7,4 @@ session Projected_Gradient_Descent = "HOL-Analysis" +
     Gradient_Descent
     Gradient_Descent_Rates
     Gradient_Descent_Convergence
+    Projection_Optimization
