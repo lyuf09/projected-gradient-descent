@@ -1,5 +1,7 @@
 theory Projected_Gradient_Descent_Linear_Rate
-  imports Strong_Convex
+  imports
+    Strong_Convex
+    Abstract_Descent
 begin
 
 section \<open>Linear convergence of projected gradient descent\<close>
@@ -114,36 +116,6 @@ proof -
     using denom_pos prod_pos
     by (simp add: field_simps)
 qed
-
-
-subsection \<open>An abstract linear-rate sequence lemma\<close>
-
-lemma sequence_linear_rate_from_step:
-  fixes a :: "nat \<Rightarrow> real"
-  assumes q_nonneg: "0 \<le> q"
-    and step: "\<And>n. a (Suc n) \<le> q * a n"
-  shows "a n \<le> q ^ n * a 0"
-proof (induction n)
-  case 0
-  show ?case
-    by simp
-next
-  case (Suc n)
-
-  have "a (Suc n) \<le> q * a n"
-    by (rule step)
-  also have "... \<le> q * (q ^ n * a 0)"
-  proof (rule mult_left_mono)
-    show "a n \<le> q ^ n * a 0"
-      using Suc.IH .
-    show "0 \<le> q"
-      using q_nonneg .
-  qed
-  also have "... = q ^ Suc n * a 0"
-    by (simp add: algebra_simps)
-  finally show ?case .
-qed
-
 
 subsection \<open>One-step distance contraction\<close>
 

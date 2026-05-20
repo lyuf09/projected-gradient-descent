@@ -6,6 +6,7 @@ session Projected_Gradient_Descent = "HOL-Analysis" +
     Gradient_Preliminaries
     Convex_Differentiable
     Smooth_Convex
+    Abstract_Descent
     Gradient_Descent
     Gradient_Descent_Rates
     Gradient_Descent_Convergence

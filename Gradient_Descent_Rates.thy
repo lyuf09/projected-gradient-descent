@@ -1,5 +1,7 @@
 theory Gradient_Descent_Rates
-  imports Gradient_Descent
+  imports
+    Gradient_Descent
+    Abstract_Descent
 begin
 
 section \<open>Rate infrastructure for gradient descent\<close>
@@ -17,131 +19,6 @@ text \<open>
   These lemmas are meant to be reusable later for projected gradient descent
   and other descent methods.
 \<close>
-
-
-subsection \<open>Abstract telescoping lemmas\<close>
-
-text \<open>
-  The first lemma is the basic telescoping estimate used throughout descent
-  analyses.  If each local progress term c n is bounded by the decrease of
-  a potential a, then the sum of the progress terms is bounded by the total
-  potential decrease.
-\<close>
-
-lemma sum_progress_le_initial_gap:
-  fixes a c :: "nat \<Rightarrow> real"
-  assumes step: "\<And>n. n < N \<Longrightarrow> c n \<le> a n - a (Suc n)"
-  shows "sum c {..<N} \<le> a 0 - a N"
-  using step
-proof (induction N)
-  case 0
-  show ?case by simp
-next
-  case (Suc N)
-
-  have IH: "sum c {..<N} \<le> a 0 - a N"
-  proof (rule Suc.IH)
-    fix n
-    assume n_lt: "n < N"
-    then show "c n \<le> a n - a (Suc n)"
-      using Suc.prems by simp
-  qed
-
-  have last: "c N \<le> a N - a (Suc N)"
-    using Suc.prems by simp
-
-  have "sum c {..<Suc N} = sum c {..<N} + c N"
-    by simp
-  also have "... \<le> (a 0 - a N) + (a N - a (Suc N))"
-    using IH last by linarith
-  also have "... = a 0 - a (Suc N)"
-    by simp
-  finally show ?case .
-qed
-
-text \<open>
-  A version in which the terminal value of the potential is bounded from
-  below.  This form is useful when one knows only a lower bound on the
-  objective, rather than the exact terminal objective value.
-\<close>
-
-lemma sum_progress_le_initial_minus_lower_bound:
-  fixes a c :: "nat \<Rightarrow> real"
-  assumes step: "\<And>n. n < N \<Longrightarrow> c n \<le> a n - a (Suc n)"
-  assumes lower: "B \<le> a N"
-  shows "sum c {..<N} \<le> a 0 - B"
-proof -
-  have "sum c {..<N} \<le> a 0 - a N"
-    using step by (rule sum_progress_le_initial_gap)
-  also have "... \<le> a 0 - B"
-    using lower by linarith
-  finally show ?thesis .
-qed
-
-text \<open>
-  If a finite average is bounded, then at least one term is bounded by
-  that average.  This is the standard argument used to derive a small-gradient
-  iterate from a finite-sum gradient bound.
-\<close>
-
-lemma exists_le_average_of_sum_bound:
-  fixes a :: "nat \<Rightarrow> real"
-  assumes N_pos: "N > 0"
-  assumes nonneg: "\<And>n. n < N \<Longrightarrow> 0 \<le> a n"
-  assumes sum_bound: "sum a {..<N} \<le> B"
-  shows "\<exists>n<N. a n \<le> B / real N"
-proof (rule ccontr)
-  assume not_exists: "\<not> (\<exists>n<N. a n \<le> B / real N)"
-  have gt: "\<And>n. n < N \<Longrightarrow> B / real N < a n"
-  proof -
-    fix n
-    assume n: "n < N"
-    have "\<not> a n \<le> B / real N"
-      using not_exists n by auto
-    then show "B / real N < a n"
-      by simp
-  qed
-
-  have const_sum: "sum (\<lambda>n. B / real N) {..<N} = B"
-    using N_pos by simp
-
-  have "B = sum (\<lambda>n. B / real N) {..<N}"
-    using const_sum by simp
-  also have "... < sum a {..<N}"
-  proof (rule sum_strict_mono)
-    show "finite {..<N}"
-      by simp
-  next
-    show "{..<N} \<noteq> {}"
-      using N_pos by auto
-  next
-    fix n
-    assume "n \<in> {..<N}"
-    then show "B / real N < a n"
-      using gt by simp
-  qed
-  also have "... \<le> B"
-    using sum_bound .
-  finally show False
-    by simp
-qed
-
-lemma exists_le_average_of_nonnegative_sum:
-  fixes a :: "nat \<Rightarrow> real"
-  assumes N_pos: "N > 0"
-  assumes nonneg: "\<And>n. n < N \<Longrightarrow> 0 \<le> a n"
-  shows "\<exists>n<N. a n \<le> sum a {..<N} / real N"
-proof -
-  have sum_bound: "sum a {..<N} \<le> sum a {..<N}"
-    by simp
-
-  show ?thesis
-    using exists_le_average_of_sum_bound[
-      where a = a and B = "sum a {..<N}",
-      OF N_pos nonneg sum_bound]
-    by simp
-qed
-
 
 subsection \<open>Finite-sum bounds for gradient descent\<close>
 
