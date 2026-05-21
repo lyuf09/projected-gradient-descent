@@ -15,6 +15,7 @@ session Projected_Gradient_Descent = "HOL-Analysis" +
     Projected_Gradient_Descent_Convergence
     Projected_Gradient_Mapping
     Projected_Gradient_Mapping_Rates
+    Projected_Gradient_Descent_Residual_Convergence
     Strong_Convex
     Projected_Gradient_Descent_Linear_Rate
     Lipschitz_Smoothness
