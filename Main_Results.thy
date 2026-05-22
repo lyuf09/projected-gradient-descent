@@ -250,6 +250,8 @@ lemmas projected_gradient_mapping_interface =
   projected_gradient_mapping_step_relation
   projected_gradient_step_eq_sub_mapping
   projected_gradient_mapping_zero_iff_fixed_point
+  projected_gradient_mapping_zero_imp_step_eq
+  projected_gradient_step_eq_imp_mapping_zero
   gradient_step_minus_projected_gradient_step_eq_mapping_residual
   projected_gradient_mapping_variational_inequality
 
@@ -270,9 +272,13 @@ mapping residual has a finite O(1/N) small-residual certificate along the
 iterates.
 \<close>
 
-lemmas projected_gradient_mapping_step_length_results =
+lemmas projected_gradient_mapping_residual_norm_results =
+  projected_gradient_mapping_norm_eq_step_distance_divide
+  projected_gradient_base_step_distance_eq_alpha_mapping_norm
+  projected_gradient_step_base_distance_eq_alpha_mapping_norm
   projected_gradient_step_distance_sq_eq_mapping_norm_sq
   projected_gradient_mapping_norm_sq_eq_step_distance_sq
+  projected_gradient_mapping_zero_iff_step_distance_zero
 
 lemmas projected_gradient_mapping_step_progress_results =
   projected_gradient_step_progress_step_norm

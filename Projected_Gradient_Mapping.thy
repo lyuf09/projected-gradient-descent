@@ -13,14 +13,21 @@ gradient mapping is
 
   (1 / alpha) * (x - P_C (x - alpha * G x)).
 
-It measures the residual of the projected-gradient fixed-point equation.
-The main purpose of this file is to connect three equivalent languages:
+It measures the normalized residual of the projected-gradient fixed-point
+equation.  Equivalently, its norm is the length of one projected-gradient step,
+divided by alpha.  Thus the projected-gradient mapping is the constrained
+analogue of the gradient residual in unconstrained gradient descent.
 
+The main purpose of this file is to connect four equivalent or closely related
+languages:
+
+  • the projected-gradient step residual;
   • zero projected-gradient mapping;
   • fixed points of the projected-gradient step;
   • first-order variational inequalities.
 
-For convex differentiable objectives, these conditions give global optimality.
+For convex differentiable objectives, the zero-residual condition gives global
+optimality.
 \<close>
 
 
@@ -55,6 +62,117 @@ proof -
     by (rule projected_gradient_mapping_step_relation[OF alpha_nonzero])
   then show ?thesis
     by (simp add: algebra_simps)
+qed
+
+subsection \<open>Norm interpretation as a residual\<close>
+
+text \<open>
+The projected-gradient mapping is the projected step residual normalized by the
+stepsize.  The following elementary identities are useful when translating
+descent in step length into descent in projected-gradient mapping norm.
+\<close>
+
+lemma projected_gradient_mapping_norm_eq_step_distance_divide:
+  fixes C :: "'a::{real_inner,heine_borel} set"
+  assumes alpha_pos: "0 < alpha"
+  shows
+    "norm (projected_gradient_mapping C alpha G x) =
+      norm (x - projected_gradient_step C alpha G x) / alpha"
+proof -
+  have
+    "norm (projected_gradient_mapping C alpha G x) =
+      norm ((1 / alpha) *\<^sub>R
+        (x - projected_gradient_step C alpha G x))"
+    unfolding projected_gradient_mapping_def by simp
+  also have "... =
+      norm (x - projected_gradient_step C alpha G x) / alpha"
+    using alpha_pos by simp
+  finally show ?thesis .
+qed
+
+lemma projected_gradient_base_step_distance_eq_alpha_mapping_norm:
+  fixes C :: "'a::{real_inner,heine_borel} set"
+  assumes alpha_pos: "0 < alpha"
+  shows
+    "norm (x - projected_gradient_step C alpha G x) =
+      alpha * norm (projected_gradient_mapping C alpha G x)"
+proof -
+  have alpha_nonzero: "alpha \<noteq> 0"
+    using alpha_pos by simp
+
+  have relation:
+    "alpha *\<^sub>R projected_gradient_mapping C alpha G x =
+      x - projected_gradient_step C alpha G x"
+    by (rule projected_gradient_mapping_step_relation[OF alpha_nonzero])
+
+  have
+    "norm (x - projected_gradient_step C alpha G x) =
+      norm (alpha *\<^sub>R projected_gradient_mapping C alpha G x)"
+    using relation by simp
+  also have "... = alpha * norm (projected_gradient_mapping C alpha G x)"
+    using alpha_pos by simp
+  finally show ?thesis .
+qed
+
+lemma projected_gradient_step_base_distance_eq_alpha_mapping_norm:
+  fixes C :: "'a::{real_inner,heine_borel} set"
+  assumes alpha_pos: "0 < alpha"
+  shows
+    "norm (projected_gradient_step C alpha G x - x) =
+      alpha * norm (projected_gradient_mapping C alpha G x)"
+proof -
+  have
+    "norm (projected_gradient_step C alpha G x - x) =
+      norm (x - projected_gradient_step C alpha G x)"
+    by (simp add: norm_minus_commute)
+  also have "... =
+      alpha * norm (projected_gradient_mapping C alpha G x)"
+    by (rule projected_gradient_base_step_distance_eq_alpha_mapping_norm[
+      OF alpha_pos])
+  finally show ?thesis .
+qed
+
+lemma projected_gradient_step_distance_sq_eq_mapping_norm_sq:
+  fixes C :: "'a::{real_inner,heine_borel} set"
+  assumes alpha_pos: "0 < alpha"
+  shows
+    "norm (projected_gradient_step C alpha G x - x) ^ 2 =
+      alpha ^ 2 * norm (projected_gradient_mapping C alpha G x) ^ 2"
+proof -
+  have norm_eq:
+    "norm (projected_gradient_step C alpha G x - x) =
+      alpha * norm (projected_gradient_mapping C alpha G x)"
+    by (rule projected_gradient_step_base_distance_eq_alpha_mapping_norm[
+      OF alpha_pos])
+
+  show ?thesis
+    using norm_eq
+    by (simp add: power2_eq_square)
+qed
+
+lemma projected_gradient_mapping_norm_sq_eq_step_distance_sq:
+  fixes C :: "'a::{real_inner,heine_borel} set"
+  assumes alpha_pos: "0 < alpha"
+  shows
+    "norm (projected_gradient_mapping C alpha G x) ^ 2 =
+      norm (projected_gradient_step C alpha G x - x) ^ 2 / alpha ^ 2"
+proof -
+  have dist:
+    "norm (projected_gradient_step C alpha G x - x) ^ 2 =
+      alpha ^ 2 * norm (projected_gradient_mapping C alpha G x) ^ 2"
+    by (rule projected_gradient_step_distance_sq_eq_mapping_norm_sq[
+      OF alpha_pos])
+
+  have alpha_sq_pos: "0 < alpha ^ 2"
+    using alpha_pos by simp
+
+  have
+    "norm (projected_gradient_step C alpha G x - x) ^ 2 / alpha ^ 2 =
+      norm (projected_gradient_mapping C alpha G x) ^ 2"
+    using dist alpha_sq_pos by simp
+
+  then show ?thesis
+    by simp
 qed
 
 lemma projected_gradient_mapping_zero_imp_step_eq:
@@ -98,6 +216,33 @@ next
     by (rule projected_gradient_step_eq_imp_mapping_zero[OF step])
 qed
 
+lemma projected_gradient_mapping_zero_iff_step_distance_zero:
+  fixes C :: "'a::{real_inner,heine_borel} set"
+  assumes alpha_nonzero: "alpha \<noteq> 0"
+  shows
+    "projected_gradient_mapping C alpha G x = 0
+      \<longleftrightarrow> norm (projected_gradient_step C alpha G x - x) = 0"
+proof
+  assume zero: "projected_gradient_mapping C alpha G x = 0"
+
+  have step_eq:
+    "projected_gradient_step C alpha G x = x"
+    by (rule projected_gradient_mapping_zero_imp_step_eq[
+      OF alpha_nonzero zero])
+
+  show "norm (projected_gradient_step C alpha G x - x) = 0"
+    using step_eq by simp
+next
+  assume dist_zero:
+    "norm (projected_gradient_step C alpha G x - x) = 0"
+
+  have step_eq:
+    "projected_gradient_step C alpha G x = x"
+    using dist_zero by simp
+
+  show "projected_gradient_mapping C alpha G x = 0"
+    by (rule projected_gradient_step_eq_imp_mapping_zero[OF step_eq])
+qed
 
 subsection \<open>Residual form of the projection variational inequality\<close>
 
@@ -454,6 +599,42 @@ lemma step_eq_sub_mapping:
     x - alpha *\<^sub>R projected_gradient_mapping C alpha G x"
   by (rule projected_gradient_step_eq_sub_mapping[OF alpha_nonzero])
 
+lemma mapping_norm_eq_step_distance_divide:
+  "norm (projected_gradient_mapping C alpha G x) =
+    norm (x - projected_gradient_step C alpha G x) / alpha"
+  by (rule projected_gradient_mapping_norm_eq_step_distance_divide[
+    OF alpha_pos])
+
+lemma base_step_distance_eq_alpha_mapping_norm:
+  "norm (x - projected_gradient_step C alpha G x) =
+    alpha * norm (projected_gradient_mapping C alpha G x)"
+  by (rule projected_gradient_base_step_distance_eq_alpha_mapping_norm[
+    OF alpha_pos])
+
+lemma step_base_distance_eq_alpha_mapping_norm:
+  "norm (projected_gradient_step C alpha G x - x) =
+    alpha * norm (projected_gradient_mapping C alpha G x)"
+  by (rule projected_gradient_step_base_distance_eq_alpha_mapping_norm[
+    OF alpha_pos])
+
+lemma step_distance_sq_eq_mapping_norm_sq:
+  "norm (projected_gradient_step C alpha G x - x) ^ 2 =
+    alpha ^ 2 * norm (projected_gradient_mapping C alpha G x) ^ 2"
+  by (rule projected_gradient_step_distance_sq_eq_mapping_norm_sq[
+    OF alpha_pos])
+
+lemma mapping_norm_sq_eq_step_distance_sq:
+  "norm (projected_gradient_mapping C alpha G x) ^ 2 =
+    norm (projected_gradient_step C alpha G x - x) ^ 2 / alpha ^ 2"
+  by (rule projected_gradient_mapping_norm_sq_eq_step_distance_sq[
+    OF alpha_pos])
+
+lemma mapping_zero_iff_step_distance_zero:
+  "projected_gradient_mapping C alpha G x = 0
+    \<longleftrightarrow> norm (projected_gradient_step C alpha G x - x) = 0"
+  by (rule projected_gradient_mapping_zero_iff_step_distance_zero[
+    OF alpha_nonzero])
+
 lemma mapping_zero_iff_fixed_point:
   "projected_gradient_mapping C alpha G x = 0
     \<longleftrightarrow> projected_gradient_step C alpha G x = x"
@@ -538,8 +719,13 @@ end
 
 
 text \<open>
-This file packages the projected-gradient residual as an explicit optimization
-object.  The main bridge theorem is
+This file packages the projected-gradient mapping as an explicit optimization
+residual.  The norm identities
+@{thm projected_gradient_mapping_norm_eq_step_distance_divide} and
+@{thm projected_gradient_step_distance_sq_eq_mapping_norm_sq} show that the
+mapping norm is exactly the projected-step residual normalized by the stepsize.
+
+The main bridge theorem is
 @{thm projected_gradient_mapping_zero_iff_first_order_condition}: for a feasible
 point x and a positive stepsize, the projected-gradient mapping vanishes exactly
 when x satisfies the constrained first-order variational inequality.
