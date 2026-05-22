@@ -4,7 +4,7 @@ This repository contains an Isabelle/HOL formalization of reusable infrastructur
 
 The development is designed as a library for formal reasoning about gradient-based optimization methods.  It provides abstract interfaces for gradients, convexity, smooth upper bounds, descent estimates, projection geometry, projected-gradient mappings, residual certificates, strong convexity, linear convergence rates, Lipschitz-smoothness bridges, and concrete quadratic examples.
 
-The project is being prepared as an AFP-oriented entry under the theme:
+The project is structured as an AFP-oriented entry under the theme:
 
 **Projected-gradient descent and reusable descent/projection convergence infrastructure for smooth convex optimization in Isabelle/HOL.**
 
@@ -90,7 +90,7 @@ Important stable aliases include:
 * `projected_gradient_descent_linear_distance_complexity`
 * `projected_gradient_descent_linear_function_value_complexity`
 
-If the Lipschitz mean-value bridge aliases are enabled in `Main_Results`, the public surface also includes:
+The public surface also includes the Lipschitz mean-value bridge aliases:
 
 * `lipschitz_mean_value_smooth_convex_bridge`
 * `lipschitz_mean_value_projected_gradient_descent_sublinear_complexity`
@@ -171,7 +171,7 @@ The current theory files are organized as follows.
 
 * `Examples_Projected_Quadratic.thy`
 
-  Projected quadratic examples, including the nonnegative half-line constraint and residual/e-stationarity consequences.
+  Projected quadratic examples, including the nonnegative half-line constraint, a bounded interval constraint, and residual/e-stationarity consequences.
 
 * `Main_Results.thy`
 
@@ -278,7 +278,7 @@ The current development contains:
 * an umbrella theory for the whole entry;
 * an AFP-oriented document and bibliography.
 
-At this stage, the main remaining work should focus on AFP-readiness, documentation polish, theorem naming stability, and build hygiene rather than adding many unrelated algorithms.
+At this stage, the development is intended to be kept stable for AFP submission. Further work should focus on documentation polish, theorem naming stability, and build hygiene rather than adding unrelated algorithms.
 
 ## Suggested final checks before AFP submission
 
@@ -299,7 +299,9 @@ isabelle build -v -o browser_info -o "document=pdf" -o "document_variants=docume
 3. Check for unfinished or interactive proof artifacts:
 
 ```bash
-grep -R "sorry\|sledgehammer\|smt_oracle\|back" -n -- *.thy document ROOT README.md
+grep -RInE '\bsorry\b|\bback\b|\bsledgehammer\b|\bsmt_oracle\b|\boops\b' -- *.thy
+grep -RInE '^\s*(nitpick|quickcheck|nunchaku)\b' -- *.thy
+grep -RIn '\[simp\]' -- *.thy
 ```
 
 4. Check for unnamed simp rules:
@@ -327,7 +329,7 @@ The current entry focuses on reusable infrastructure for smooth convex first-ord
 Possible future extensions include:
 
 * a sharp integral proof that Lipschitz continuity of the gradient implies the quadratic smooth upper-bound interface with constant `L`;
-* concrete constrained examples such as interval, box, or ball constraints;
+* additional constrained examples such as box, ball, or polyhedral constraints;
 * least-squares examples;
 * proximal-gradient methods;
 * conditional-gradient methods;

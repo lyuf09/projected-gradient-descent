@@ -289,11 +289,16 @@ objectives.  These examples serve as compact regression tests for the
 library: they show how the smoothness, convexity, projection, residual, and
 linear-rate interfaces can be used in concrete problems.
 
-The constrained quadratic example over the nonnegative half-line is
-particularly useful as a demonstration of the projected-gradient
-infrastructure.  It gives a simple setting in which projection geometry,
+The constrained quadratic examples include both a nonnegative half-line
+constraint and a bounded interval constraint.  The nonnegative half-line
+example gives a simple setting in which projection geometry,
 projected-gradient mappings, function-value estimates, and
 epsilon-stationarity certificates can all be instantiated explicitly.
+
+The bounded interval example further illustrates the reusable projection
+layer: the convergence and residual results are obtained through the general
+closed-convex projection interface, rather than through an ad hoc
+closed-form projection calculation.
 
 \section{Related work}
 
@@ -331,8 +336,8 @@ refinements.
 
 The structure of the development is intended to support future extensions.
 Natural next steps include proximal-gradient methods, conditional-gradient
-methods, accelerated methods, more general constrained examples, and sharper
-analytic bridges from Lipschitz-gradient assumptions to the quadratic
+methods, accelerated methods, additional constrained examples such as box or
+polyhedral constraints, and sharper analytic bridges from Lipschitz-gradient assumptions to the quadratic
 upper-bound interface, for example via integral descent-lemma arguments along
 line segments.
 
