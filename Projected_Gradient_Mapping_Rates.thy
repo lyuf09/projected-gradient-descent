@@ -73,45 +73,6 @@ qed
 
 subsection \<open>One-step residual progress\<close>
 
-lemma projected_gradient_step_progress_step_norm:
-  fixes f :: "'a::{real_inner,heine_borel} \<Rightarrow> real"
-    and G :: "'a \<Rightarrow> 'a"
-  assumes smooth: "smooth_convex_on L C f G"
-    and closed: "closed C"
-    and convex: "convex C"
-    and x_mem: "x \<in> C"
-    and alpha_pos: "0 < alpha"
-    and step_size: "alpha * L \<le> 1"
-  shows
-    "(1 / (2 * alpha)) *
-      norm (projected_gradient_step C alpha G x - x) ^ 2
-      \<le> f x - f (projected_gradient_step C alpha G x)"
-proof -
-  let ?p = "projected_gradient_step C alpha G x"
-
-  have step:
-    "f ?p - f x
-      \<le> (norm (x - x) ^ 2 - norm (?p - x) ^ 2) / (2 * alpha)"
-    by (rule projected_gradient_one_step_distance_bound_to_point[
-      OF smooth closed convex x_mem x_mem alpha_pos step_size])
-
-  have step':
-    "f ?p - f x \<le> - (norm (?p - x) ^ 2 / (2 * alpha))"
-    using step by simp
-
-  have A_le:
-    "norm (?p - x) ^ 2 / (2 * alpha) \<le> f x - f ?p"
-    using step' by linarith
-
-  have
-    "(1 / (2 * alpha)) * norm (?p - x) ^ 2 =
-      norm (?p - x) ^ 2 / (2 * alpha)"
-    by simp
-
-  then show ?thesis
-    using A_le by simp
-qed
-
 lemma projected_gradient_step_progress_mapping:
   fixes f :: "'a::{real_inner,heine_borel} \<Rightarrow> real"
     and G :: "'a \<Rightarrow> 'a"

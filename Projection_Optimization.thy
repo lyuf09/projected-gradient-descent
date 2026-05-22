@@ -8,8 +8,12 @@ section \<open>Projection and projected gradient steps\<close>
 
 text \<open>
 This theory introduces the projection layer needed for projected gradient
-descent.  The main result is the one-step distance inequality for a projected
-gradient step on a closed convex feasible set.
+descent.  The main results are the one-step distance inequality for a projected
+gradient step on a closed convex feasible set, and the associated one-step
+objective decrease in terms of the projected step length.
+
+The projected-gradient mapping itself is introduced later, to avoid making this
+basic projection layer depend on the residual interface.
 \<close>
 
 
@@ -191,6 +195,113 @@ proof -
     using before_absorb by linarith
 qed
 
+subsection \<open>Projected gradient step descent\<close>
+
+text \<open>
+Taking the comparison point u to be the current iterate x in the one-step
+distance inequality gives a descent estimate in terms of the projected step
+length.  Later theories translate this step-length residual into the
+projected-gradient mapping norm.
+\<close>
+
+lemma projected_gradient_step_progress_step_norm:
+  fixes f :: "'a::{real_inner,heine_borel} \<Rightarrow> real"
+    and G :: "'a \<Rightarrow> 'a"
+  assumes smooth: "smooth_convex_on L C f G"
+    and closed: "closed C"
+    and convex: "convex C"
+    and x_mem: "x \<in> C"
+    and alpha_pos: "0 < alpha"
+    and step_size: "alpha * L \<le> 1"
+  shows
+    "(1 / (2 * alpha)) *
+      norm (projected_gradient_step C alpha G x - x) ^ 2
+      \<le> f x - f (projected_gradient_step C alpha G x)"
+proof -
+  let ?p = "projected_gradient_step C alpha G x"
+
+  have step:
+    "f ?p - f x
+      \<le> (norm (x - x) ^ 2 - norm (?p - x) ^ 2) / (2 * alpha)"
+    by (rule projected_gradient_one_step_distance_bound_to_point[
+      OF smooth closed convex x_mem x_mem alpha_pos step_size])
+
+  have step':
+    "f ?p - f x \<le> - (norm (?p - x) ^ 2 / (2 * alpha))"
+  proof -
+    have
+      "(norm (x - x) ^ 2 - norm (?p - x) ^ 2) / (2 * alpha)
+        = - (norm (?p - x) ^ 2 / (2 * alpha))"
+      by simp
+    then show ?thesis
+      using step by simp
+  qed
+
+  have A_le:
+    "norm (?p - x) ^ 2 / (2 * alpha) \<le> f x - f ?p"
+    using step' by linarith
+
+  have coeff_rewrite:
+    "(1 / (2 * alpha)) * norm (?p - x) ^ 2 =
+      norm (?p - x) ^ 2 / (2 * alpha)"
+    by simp
+
+  show ?thesis
+    using A_le coeff_rewrite by simp
+qed
+
+lemma projected_gradient_step_descent_step_norm:
+  fixes f :: "'a::{real_inner,heine_borel} \<Rightarrow> real"
+    and G :: "'a \<Rightarrow> 'a"
+  assumes smooth: "smooth_convex_on L C f G"
+    and closed: "closed C"
+    and convex: "convex C"
+    and x_mem: "x \<in> C"
+    and alpha_pos: "0 < alpha"
+    and step_size: "alpha * L \<le> 1"
+  shows
+    "f (projected_gradient_step C alpha G x)
+      \<le> f x -
+        (1 / (2 * alpha)) *
+          norm (projected_gradient_step C alpha G x - x) ^ 2"
+proof -
+  have progress:
+    "(1 / (2 * alpha)) *
+      norm (projected_gradient_step C alpha G x - x) ^ 2
+      \<le> f x - f (projected_gradient_step C alpha G x)"
+    by (rule projected_gradient_step_progress_step_norm[
+      OF smooth closed convex x_mem alpha_pos step_size])
+
+  show ?thesis
+    using progress by linarith
+qed
+
+lemma projected_gradient_step_descent_step_norm_add:
+  fixes f :: "'a::{real_inner,heine_borel} \<Rightarrow> real"
+    and G :: "'a \<Rightarrow> 'a"
+  assumes smooth: "smooth_convex_on L C f G"
+    and closed: "closed C"
+    and convex: "convex C"
+    and x_mem: "x \<in> C"
+    and alpha_pos: "0 < alpha"
+    and step_size: "alpha * L \<le> 1"
+  shows
+    "f (projected_gradient_step C alpha G x)
+      + (1 / (2 * alpha)) *
+          norm (projected_gradient_step C alpha G x - x) ^ 2
+      \<le> f x"
+proof -
+  have progress:
+    "(1 / (2 * alpha)) *
+      norm (projected_gradient_step C alpha G x - x) ^ 2
+      \<le> f x - f (projected_gradient_step C alpha G x)"
+    by (rule projected_gradient_step_progress_step_norm[
+      OF smooth closed convex x_mem alpha_pos step_size])
+
+  show ?thesis
+    using progress by linarith
+qed
+
 lemma projected_gradient_one_step_distance_bound_to_minimizer:
   fixes f :: "'a::{real_inner,heine_borel} \<Rightarrow> real"
     and G :: "'a \<Rightarrow> 'a"
@@ -308,6 +419,86 @@ proof -
         OF smooth closed convex xn_mem u_mem alpha_pos step_size])
 qed
 
+lemma projected_gradient_descent_step_progress_step_norm:
+  fixes f :: "'a::{real_inner,heine_borel} \<Rightarrow> real"
+    and G :: "'a \<Rightarrow> 'a"
+  assumes smooth: "smooth_convex_on L C f G"
+    and closed: "closed C"
+    and convex: "convex C"
+    and pgd: "projected_gradient_descent_iterates C alpha G x"
+    and feasible: "feasible_iterates C x"
+    and alpha_pos: "0 < alpha"
+    and step_size: "alpha * L \<le> 1"
+  shows
+    "(1 / (2 * alpha)) * norm (x (Suc n) - x n) ^ 2
+      \<le> f (x n) - f (x (Suc n))"
+proof -
+  have xn_mem: "x n \<in> C"
+    using feasible by (rule feasible_iteratesD)
+
+  have step_eq:
+    "x (Suc n) = projected_gradient_step C alpha G (x n)"
+    using pgd by (rule projected_gradient_descent_iteratesD)
+
+  have progress:
+    "(1 / (2 * alpha)) *
+      norm (projected_gradient_step C alpha G (x n) - x n) ^ 2
+      \<le> f (x n) - f (projected_gradient_step C alpha G (x n))"
+    by (rule projected_gradient_step_progress_step_norm[
+      OF smooth closed convex xn_mem alpha_pos step_size])
+
+  show ?thesis
+    using progress step_eq by simp
+qed
+
+lemma projected_gradient_descent_step_descent_step_norm:
+  fixes f :: "'a::{real_inner,heine_borel} \<Rightarrow> real"
+    and G :: "'a \<Rightarrow> 'a"
+  assumes smooth: "smooth_convex_on L C f G"
+    and closed: "closed C"
+    and convex: "convex C"
+    and pgd: "projected_gradient_descent_iterates C alpha G x"
+    and feasible: "feasible_iterates C x"
+    and alpha_pos: "0 < alpha"
+    and step_size: "alpha * L \<le> 1"
+  shows
+    "f (x (Suc n))
+      \<le> f (x n) - (1 / (2 * alpha)) * norm (x (Suc n) - x n) ^ 2"
+proof -
+  have progress:
+    "(1 / (2 * alpha)) * norm (x (Suc n) - x n) ^ 2
+      \<le> f (x n) - f (x (Suc n))"
+    by (rule projected_gradient_descent_step_progress_step_norm[
+      OF smooth closed convex pgd feasible alpha_pos step_size])
+
+  show ?thesis
+    using progress by linarith
+qed
+
+lemma projected_gradient_descent_step_descent_step_norm_add:
+  fixes f :: "'a::{real_inner,heine_borel} \<Rightarrow> real"
+    and G :: "'a \<Rightarrow> 'a"
+  assumes smooth: "smooth_convex_on L C f G"
+    and closed: "closed C"
+    and convex: "convex C"
+    and pgd: "projected_gradient_descent_iterates C alpha G x"
+    and feasible: "feasible_iterates C x"
+    and alpha_pos: "0 < alpha"
+    and step_size: "alpha * L \<le> 1"
+  shows
+    "f (x (Suc n)) + (1 / (2 * alpha)) * norm (x (Suc n) - x n) ^ 2
+      \<le> f (x n)"
+proof -
+  have progress:
+    "(1 / (2 * alpha)) * norm (x (Suc n) - x n) ^ 2
+      \<le> f (x n) - f (x (Suc n))"
+    by (rule projected_gradient_descent_step_progress_step_norm[
+      OF smooth closed convex pgd feasible alpha_pos step_size])
+
+  show ?thesis
+    using progress by linarith
+qed
+
 lemma projected_gradient_descent_one_step_distance_bound_to_minimizer:
   fixes f :: "'a::{real_inner,heine_borel} \<Rightarrow> real"
     and G :: "'a \<Rightarrow> 'a"
@@ -338,6 +529,12 @@ The main one-step estimate of this file is
 @{thm projected_gradient_one_step_distance_bound_to_point}.
 It is the projected analogue of the distance-potential inequality used for
 the unconstrained gradient-descent convergence proof.
+
+The descent estimate
+@{thm projected_gradient_step_progress_step_norm} is obtained by taking the
+comparison point to be the current iterate.  It controls the objective decrease
+by the projected step length and is the step-level input for projected-gradient
+mapping residual-rate estimates.
 \<close>
 
 end
