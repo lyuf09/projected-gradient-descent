@@ -5,19 +5,27 @@ begin
 section \<open>Residual convergence certificates for projected gradient descent\<close>
 
 text \<open>
-This theory packages the finite-time projected-gradient mapping bounds as
-epsilon-stationarity certificates.
+This theory is the residual-complexity layer of the projected-gradient
+descent development.
 
-The previous theory proves that the squared projected-gradient mapping residual
-has an O(1/N) small-residual certificate along projected gradient descent.
-Here we rephrase these estimates in the language of residual convergence:
-for a sufficiently long finite horizon, at least one iterate has small
-projected-gradient residual.
+The previous theory proves finite-horizon estimates for the squared norm of
+the projected-gradient mapping.  Here we package those estimates as
+user-facing residual convergence and epsilon-stationarity certificates.
 
-This is intentionally stated as a finite-horizon complexity certificate rather
-than as a filter-limit statement.  The finite statement is the form most often
-used in first-order complexity estimates, and it avoids introducing additional
-sequence-limit infrastructure.
+The projected-gradient residual is the norm of the projected-gradient mapping.
+It is the constrained analogue of the gradient norm in unconstrained smooth
+optimization.  Small residual therefore gives an approximate first-order
+stationarity certificate for constrained smooth convex optimization.
+
+The main high-level result of this theory is a finite-horizon complexity
+statement: if the horizon N is large enough relative to the initial objective
+gap and the desired tolerance eps, then at least one of the first N
+projected-gradient iterates has projected-gradient residual at most eps.
+
+The result is intentionally stated as a finite-horizon certificate rather than
+as a filter-limit statement.  This is the form most commonly used in
+first-order complexity estimates, and it keeps the statement directly reusable
+for algorithmic convergence proofs.
 \<close>
 
 
@@ -47,6 +55,18 @@ lemma projected_gradient_residual_sq_eq_residual_power2:
   "projected_gradient_residual_sq C alpha G x =
     projected_gradient_residual C alpha G x ^ 2"
   unfolding projected_gradient_residual_def projected_gradient_residual_sq_def
+  by simp
+
+lemma projected_gradient_residual_eq_mapping_norm:
+  "projected_gradient_residual C alpha G x =
+    norm (projected_gradient_mapping C alpha G x)"
+  unfolding projected_gradient_residual_def
+  by simp
+
+lemma projected_gradient_residual_sq_eq_mapping_norm_sq:
+  "projected_gradient_residual_sq C alpha G x =
+    norm (projected_gradient_mapping C alpha G x) ^ 2"
+  unfolding projected_gradient_residual_sq_def
   by simp
 
 lemma projected_gradient_residual_le_of_sq_le:
@@ -474,11 +494,16 @@ proof -
 qed
 
 
-subsection \<open>Product-form horizon conditions\<close>
+subsection \<open>Product-form epsilon-stationarity complexity\<close>
 
 text \<open>
-The following variants use a product-form horizon assumption.  This is often
-more readable in optimization statements because it avoids nested divisions.
+The following variants are the main finite-horizon epsilon-stationarity
+certificates of the theory.
+
+They use a product-form horizon assumption,
+which is often the most readable form in optimization statements.  Instead
+of requiring a bound on a quotient, the assumption states directly that the
+horizon is large enough relative to the initial objective gap and eps squared.
 \<close>
 
 lemma projected_gradient_descent_exists_epsilon_residual_to_minimizer_product_feasible:
@@ -618,6 +643,51 @@ proof -
       OF smooth closed convex x_mem alpha_pos mapping_zero])
 qed
 
+subsection \<open>Recommended public residual-complexity interface\<close>
+
+text \<open>
+The following aliases give short, stable names to the main user-facing
+results of this theory.  They are intended for use in the AFP document,
+README, and downstream developments.
+
+The long theorem names above preserve the exact assumptions used in the
+proofs.  The aliases below identify the main residual-complexity and
+optimality certificates exposed by this theory.
+\<close>
+
+lemmas projected_gradient_descent_residual_sq_complexity =
+  projected_gradient_descent_exists_small_residual_sq_to_minimizer
+
+lemmas projected_gradient_descent_feasible_residual_sq_complexity =
+  projected_gradient_descent_exists_small_residual_sq_to_minimizer_feasible
+
+lemmas projected_gradient_descent_epsilon_stationarity_complexity =
+  projected_gradient_descent_exists_epsilon_residual_to_minimizer_product
+
+lemmas projected_gradient_descent_feasible_epsilon_stationarity_complexity =
+  projected_gradient_descent_exists_epsilon_residual_to_minimizer_product_feasible
+
+lemmas projected_gradient_residual_fixed_point_certificate =
+  projected_gradient_residual_zero_iff_fixed_point
+
+lemmas projected_gradient_residual_optimality_certificate =
+  projected_gradient_residual_zero_iff_first_order_condition
+
+lemmas projected_gradient_residual_global_min_certificate =
+  projected_gradient_residual_zero_imp_global_min_on
+
+lemmas projected_gradient_residual_public_interface =
+  projected_gradient_residual_eq_mapping_norm
+  projected_gradient_residual_sq_eq_mapping_norm_sq
+  projected_gradient_residual_sq_eq_residual_power2
+  projected_gradient_residual_le_of_sq_le
+  projected_gradient_residual_sq_le_of_residual_le
+  projected_gradient_descent_residual_sq_complexity
+  projected_gradient_descent_epsilon_stationarity_complexity
+  projected_gradient_residual_fixed_point_certificate
+  projected_gradient_residual_optimality_certificate
+  projected_gradient_residual_global_min_certificate
+
 
 subsection \<open>Locale form\<close>
 
@@ -712,10 +782,17 @@ end
 
 text \<open>
 The main public theorem in this file is
-@{thm projected_gradient_descent_exists_epsilon_residual_to_minimizer_product}.
+projected_gradient_descent_epsilon_stationarity_complexity.
+
+It is an alias for
+projected_gradient_descent_exists_epsilon_residual_to_minimizer_product.
 It states that, if the horizon N is large enough in the usual product-form
 complexity bound, then one of the first N projected-gradient iterates has
 projected-gradient residual at most eps.
+
+The theorem group projected_gradient_residual_public_interface collects the
+main residual notation, residual-complexity, and residual-optimality facts
+provided by this theory.
 \<close>
 
 end

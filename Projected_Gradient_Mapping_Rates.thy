@@ -5,16 +5,25 @@ begin
 section \<open>Projected-gradient mapping residual rates\<close>
 
 text \<open>
-This theory proves finite-time residual estimates for projected gradient
-descent in terms of the projected-gradient mapping.
+This theory is the technical residual-rate engine for projected-gradient
+descent.
 
-The projected-gradient mapping is the constrained analogue of the gradient
-residual.  For projected gradient descent, the squared norm of this residual
-can be controlled by the objective decrease, and therefore by a finite
-telescoping argument.
+The previous theory introduces the projected-gradient mapping and proves its
+fixed-point and optimality properties.  This theory proves finite-horizon
+estimates for the squared norm of that mapping along projected-gradient
+descent iterates.
+
+The main proof pattern is the standard first-order complexity argument:
+a one-step progress inequality controls the squared projected-gradient mapping
+norm by the objective decrease, and an abstract telescoping argument converts
+this into finite-sum, average, and small-residual estimates.
+
+This theory deliberately stays at the level of squared mapping norms.  The
+next theory packages these estimates into user-facing residual convergence and
+epsilon-stationarity certificates.
 \<close>
 
-subsection \<open>Step length and projected-gradient mapping\<close>
+subsection \<open>Step length and projected-gradient mapping norm\<close>
 
 lemma projected_gradient_step_distance_sq_eq_mapping_norm_sq:
   fixes C :: "'a::{real_inner,heine_borel} set"
@@ -71,7 +80,7 @@ proof -
     by simp
 qed
 
-subsection \<open>One-step residual progress\<close>
+subsection \<open>One-step progress in terms of the mapping residual\<close>
 
 lemma projected_gradient_step_progress_mapping:
   fixes f :: "'a::{real_inner,heine_borel} \<Rightarrow> real"
@@ -139,7 +148,14 @@ proof -
     using progress step_eq by simp
 qed
 
-subsection \<open>Finite-sum residual bounds\<close>
+subsection \<open>Finite-sum mapping-residual bounds\<close>
+
+text \<open>
+The following estimates are the summability form of the residual-rate
+argument.  The weighted bound is the direct telescoping consequence of the
+one-step progress inequality.  The unweighted bounds divide out the positive
+stepsize factor.
+\<close>
 
 lemma projected_gradient_descent_sum_weighted_mapping_norm_sq_bound_feasible:
   fixes f :: "'a::{real_inner,heine_borel} \<Rightarrow> real"
@@ -376,7 +392,12 @@ proof -
       OF smooth closed convex pgd feasible alpha_pos step_size lower])
 qed
 
-subsection \<open>Average residual bounds\<close>
+subsection \<open>Average mapping-residual bounds\<close>
+
+text \<open>
+Averaging the finite-sum estimates gives the usual O(1/N) bound on the
+average squared projected-gradient mapping norm.
+\<close>
 
 lemma projected_gradient_descent_average_mapping_norm_sq_bound_feasible:
   fixes f :: "'a::{real_inner,heine_borel} \<Rightarrow> real"
@@ -512,7 +533,14 @@ proof -
       OF smooth closed convex pgd feasible alpha_pos step_size lower N_pos])
 qed
 
-subsection \<open>Small-residual consequences\<close>
+subsection \<open>Small mapping-residual consequences\<close>
+
+text \<open>
+The average bound implies that at least one of the first N iterates has
+squared projected-gradient mapping norm no larger than the average.  These
+lemmas are the technical small-residual estimates later converted into
+epsilon-stationarity certificates.
+\<close>
 
 lemma projected_gradient_descent_exists_small_mapping_norm_sq_feasible:
   fixes f :: "'a::{real_inner,heine_borel} \<Rightarrow> real"
@@ -666,7 +694,13 @@ proof -
       OF smooth closed convex pgd feasible alpha_pos step_size lower N_pos])
 qed
 
-subsection \<open>Minimizer versions\<close>
+subsection \<open>Minimizer-based mapping-residual bounds\<close>
+
+text \<open>
+When a global minimizer is available, the lower bound can be specialized to
+the optimal value.  These versions are the most convenient form for complexity
+statements depending on the initial objective gap.
+\<close>
 
 lemma projected_gradient_descent_sum_mapping_norm_sq_bound_to_minimizer_feasible:
   fixes f :: "'a::{real_inner,heine_borel} \<Rightarrow> real"
@@ -771,6 +805,58 @@ proof -
     by (rule projected_gradient_descent_exists_small_mapping_norm_sq_to_minimizer_feasible[
       OF smooth closed convex pgd feasible alpha_pos step_size minimizer N_pos])
 qed
+
+subsection \<open>Recommended mapping-rate interface\<close>
+
+text \<open>
+The following theorem groups collect the main reusable consequences of this
+theory.  They separate the technical rate engine from the later residual
+notation and epsilon-stationarity layer.
+\<close>
+
+lemmas projected_gradient_mapping_step_length_results =
+  projected_gradient_step_distance_sq_eq_mapping_norm_sq
+  projected_gradient_mapping_norm_sq_eq_step_distance_sq
+
+lemmas projected_gradient_mapping_progress_results =
+  projected_gradient_step_progress_mapping
+  projected_gradient_descent_step_progress_mapping
+
+lemmas projected_gradient_mapping_weighted_sum_results =
+  projected_gradient_descent_sum_weighted_mapping_norm_sq_bound_feasible
+  projected_gradient_descent_sum_weighted_mapping_norm_sq_bound
+  projected_gradient_descent_sum_weighted_mapping_norm_sq_bound_below_feasible
+  projected_gradient_descent_sum_weighted_mapping_norm_sq_bound_below
+
+lemmas projected_gradient_mapping_sum_results =
+  projected_gradient_descent_sum_mapping_norm_sq_bound_feasible
+  projected_gradient_descent_sum_mapping_norm_sq_bound
+  projected_gradient_descent_sum_mapping_norm_sq_bound_below_feasible
+  projected_gradient_descent_sum_mapping_norm_sq_bound_below
+  projected_gradient_descent_sum_mapping_norm_sq_bound_to_minimizer_feasible
+  projected_gradient_descent_sum_mapping_norm_sq_bound_to_minimizer
+
+lemmas projected_gradient_mapping_average_results =
+  projected_gradient_descent_average_mapping_norm_sq_bound_feasible
+  projected_gradient_descent_average_mapping_norm_sq_bound
+  projected_gradient_descent_average_mapping_norm_sq_bound_below_feasible
+  projected_gradient_descent_average_mapping_norm_sq_bound_below
+
+lemmas projected_gradient_mapping_small_residual_results =
+  projected_gradient_descent_exists_small_mapping_norm_sq_feasible
+  projected_gradient_descent_exists_small_mapping_norm_sq
+  projected_gradient_descent_exists_small_mapping_norm_sq_below_feasible
+  projected_gradient_descent_exists_small_mapping_norm_sq_below
+  projected_gradient_descent_exists_small_mapping_norm_sq_to_minimizer_feasible
+  projected_gradient_descent_exists_small_mapping_norm_sq_to_minimizer
+
+lemmas projected_gradient_mapping_rate_engine =
+  projected_gradient_mapping_step_length_results
+  projected_gradient_mapping_progress_results
+  projected_gradient_mapping_weighted_sum_results
+  projected_gradient_mapping_sum_results
+  projected_gradient_mapping_average_results
+  projected_gradient_mapping_small_residual_results
 
 subsection \<open>Locale form\<close>
 
@@ -886,13 +972,19 @@ lemma exists_small_mapping_norm_sq_to_minimizer:
 end
 
 text \<open>
-The main reusable consequences are:
-  @{thm projected_gradient_descent_sum_mapping_norm_sq_bound},
-  @{thm projected_gradient_descent_average_mapping_norm_sq_bound}, and
-  @{thm projected_gradient_descent_exists_small_mapping_norm_sq}.
+The main reusable consequences of this theory are:
 
-Together, these state that the projected-gradient mapping residual has a finite
-O(1/N) small-residual certificate along projected gradient descent.
+  • projected_gradient_descent_sum_mapping_norm_sq_bound;
+  • projected_gradient_descent_average_mapping_norm_sq_bound;
+  • projected_gradient_descent_exists_small_mapping_norm_sq;
+  • projected_gradient_descent_exists_small_mapping_norm_sq_to_minimizer.
+
+Together, these state that the squared projected-gradient mapping residual
+satisfies finite-sum, average, and finite-horizon small-residual bounds along
+projected-gradient descent.
+
+The theorem group projected_gradient_mapping_rate_engine collects the main
+technical rate interface of this theory.
 \<close>
 
 end

@@ -5,9 +5,12 @@ begin
 section \<open>Main reusable theorem interface\<close>
 
 text \<open>
-This theory collects the main reusable facts of the entry.  It is intended as
-a stable public theorem surface for users who want to import the development
-without searching through the internal proof files.
+This theory is the recommended public import target of the entry.
+
+It collects the main reusable theorem groups for smooth convex first-order
+optimization, while hiding the internal proof structure of the individual
+theory files.  Downstream developments should normally import this theory
+instead of importing the lower-level proof files directly.
 
 The entry is organized as a small library layer for smooth convex first-order
 optimization.  The main reusable components are:
@@ -16,12 +19,14 @@ optimization.  The main reusable components are:
   2. smooth upper-bound and descent interfaces;
   3. abstract telescoping lemmas for convergence proofs;
   4. gradient descent and projected-gradient descent convergence theorems;
-  5. projected-gradient mapping optimality and residual certificates;
-  6. strong-convexity and linear-rate results;
-  7. concrete quadratic examples.
+  5. projection geometry and projected-gradient step rules;
+  6. projected-gradient mapping optimality and residual certificates;
+  7. strong-convexity and linear-rate results;
+  8. concrete quadratic examples.
 
-Users who only want the public API should normally import this theory rather
-than the individual internal proof files.
+The theorem groups below are organized from low-level analytic interfaces to
+high-level convergence and residual-complexity statements.  The final section
+collects the recommended citation surface of the entry.
 \<close>
 
 
@@ -478,12 +483,40 @@ lemmas nonnegative_quadratic_example_results =
   nonnegative_quadratic_projected_gradient_residual_zero_imp_zero
 
 
-subsection \<open>Most commonly cited public theorems\<close>
+subsection \<open>Recommended public API\<close>
 
 text \<open>
-The following named theorem groups are intended to make the public API easy to
-browse.  They collect the main theorems users are most likely to cite or reuse.
+The following theorem groups are the recommended citation surface of the
+entry.  They intentionally contain only the main facts that downstream
+developments are most likely to reuse.
+
+The lower-level groups above remain available for more specialized uses.
 \<close>
+
+subsubsection \<open>Core infrastructure\<close>
+
+lemmas main_first_order_infrastructure =
+  gradient_pointwise_interface
+  gradient_field_interface
+  gradient_rule_interface
+  global_min_interface
+  first_order_condition_interface
+  convex_first_order_results
+
+lemmas main_smooth_descent_infrastructure =
+  smooth_upper_bound_interface
+  smooth_convex_interface
+  gradient_step_interface
+  gradient_step_descent_results
+  abstract_descent_results
+
+lemmas main_projection_infrastructure =
+  projection_geometry_results
+  projected_gradient_step_interface
+  projected_gradient_step_descent_results
+
+
+subsubsection \<open>Main convergence theorems\<close>
 
 lemmas main_gradient_descent_theorems =
   gradient_descent_function_value_gap_bound
@@ -529,18 +562,93 @@ lemmas main_example_theorems =
   nonnegative_quadratic_projected_gradient_residual_zero_imp_zero
 
 
-text \<open>
-The most commonly cited top-level convergence and optimality theorems are:
+subsubsection \<open>Stable aliases for citation\<close>
 
-  - @{thm gradient_descent_function_value_gap_bound}
-  - @{thm projected_gradient_descent_function_value_gap_bound}
-  - @{thm projected_gradient_descent_exists_small_mapping_norm_sq}
-  - @{thm projected_gradient_descent_exists_epsilon_residual_to_minimizer_product}
-  - @{thm projected_gradient_mapping_zero_iff_first_order_condition}
-  - @{thm projected_gradient_mapping_zero_imp_global_min_on}
-  - @{thm strongly_smooth_convex_global_min_distance_gap}
-  - @{thm projected_gradient_descent_distance_sq_linear_rate}
-  - @{thm projected_gradient_descent_function_value_linear_rate}
+text \<open>
+The following aliases give short, stable names to the main high-level
+statements of the entry.  They are intended for use in the AFP document,
+README, and downstream developments.
+\<close>
+
+lemmas gradient_descent_sublinear_complexity =
+  gradient_descent_function_value_gap_bound
+
+lemmas gradient_descent_gradient_residual_complexity =
+  gradient_descent_exists_small_gradient_norm_sq
+
+lemmas projected_gradient_descent_sublinear_complexity =
+  projected_gradient_descent_function_value_gap_bound
+
+lemmas projected_gradient_descent_mapping_residual_complexity =
+  projected_gradient_descent_exists_small_mapping_norm_sq_to_minimizer
+
+lemmas projected_gradient_descent_epsilon_stationarity_complexity =
+  projected_gradient_descent_exists_epsilon_residual_to_minimizer_product
+
+lemmas projected_gradient_mapping_optimality_certificate =
+  projected_gradient_mapping_zero_iff_first_order_condition
+
+lemmas projected_gradient_mapping_global_min_certificate =
+  projected_gradient_mapping_zero_imp_global_min_on
+
+lemmas projected_gradient_residual_optimality_certificate =
+  projected_gradient_residual_zero_iff_first_order_condition
+
+lemmas projected_gradient_residual_global_min_certificate =
+  projected_gradient_residual_zero_imp_global_min_on
+
+lemmas strongly_convex_distance_gap_certificate =
+  strongly_smooth_convex_global_min_distance_gap
+
+lemmas projected_gradient_descent_linear_distance_complexity =
+  projected_gradient_descent_distance_sq_linear_rate
+
+lemmas projected_gradient_descent_linear_function_value_complexity =
+  projected_gradient_descent_function_value_linear_rate
+
+
+subsubsection \<open>Complete recommended theorem surface\<close>
+
+text \<open>
+This final group collects the recommended high-level API of the entry.
+It is useful as a compact overview of the main reusable results.
+\<close>
+
+lemmas first_order_methods_public_api =
+  main_first_order_infrastructure
+  main_smooth_descent_infrastructure
+  main_projection_infrastructure
+  main_gradient_descent_theorems
+  main_projected_gradient_descent_theorems
+  main_projected_gradient_mapping_theorems
+  main_epsilon_stationarity_theorems
+  main_strong_convexity_and_linear_rate_theorems
+  main_example_theorems
+
+lemmas first_order_methods_citation_surface =
+  gradient_descent_sublinear_complexity
+  gradient_descent_gradient_residual_complexity
+  projected_gradient_descent_sublinear_complexity
+  projected_gradient_descent_mapping_residual_complexity
+  projected_gradient_descent_epsilon_stationarity_complexity
+  projected_gradient_mapping_optimality_certificate
+  projected_gradient_mapping_global_min_certificate
+  projected_gradient_residual_optimality_certificate
+  projected_gradient_residual_global_min_certificate
+  strongly_convex_distance_gap_certificate
+  projected_gradient_descent_linear_distance_complexity
+  projected_gradient_descent_linear_function_value_complexity
+
+
+text \<open>
+Recommended theorem groups for downstream users:
+
+  • first_order_methods_public_api
+  • first_order_methods_citation_surface
+
+The individual aliases in first_order_methods_citation_surface are intended to
+provide stable names for the main convergence, residual, optimality, and
+linear-rate results of the entry.
 \<close>
 
 end
