@@ -351,4 +351,5 @@ The AFP document also discusses related formalization work, including the AFP en
 
 ## License
 
-This project is intended for academic and formalization purposes.  A suitable open-source license should be added before public AFP submission if one is not already present.
+This development is distributed under the BSD 2-Clause License.
+See the file `LICENSE` for details.
