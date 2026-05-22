@@ -1,5 +1,7 @@
 theory Main_Results
-  imports Examples_Projected_Quadratic
+  imports
+    Lipschitz_Smoothness
+    Examples_Projected_Quadratic
 begin
 
 section \<open>Main reusable theorem interface\<close>
@@ -413,13 +415,18 @@ lemmas projected_gradient_descent_linear_rate_results =
   projected_gradient_descent_strict_rate_factor
 
 
-subsection \<open>Lipschitz smoothness interface\<close>
+subsection \<open>Lipschitz smoothness and mean-value bridge\<close>
 
 text \<open>
-This interface separates Lipschitz-gradient assumptions from the algorithmic
-convergence layer.  The current convergence results use the smooth upper-bound
-certificate directly; these lemmas provide a bridge between line-descent,
-smooth upper-bound, and Lipschitz-smooth formulations.
+This interface separates Lipschitz-gradient-style assumptions from the
+algorithmic convergence layer.  The basic certificate interface records the
+equivalence between line-descent bounds and the smooth upper-bound property.
+
+The mean-value bridge connects primitive Lipschitz-gradient assumptions to the
+same convergence framework with constant 2 * L.  This gives a reusable route
+from standard differentiability-style assumptions to the projected-gradient
+descent convergence theorems, without committing the algorithmic layer to a
+particular integration formalization.
 \<close>
 
 lemmas lipschitz_smoothness_interface =
@@ -437,6 +444,18 @@ lemmas lipschitz_smoothness_interface =
   lipschitz_smooth_convex_onI
   lipschitz_smooth_convex_on_imp_smooth_convex_on
   smooth_convex_on_and_lipschitz_gradient_imp_lipschitz_smooth_convex_on
+
+lemmas lipschitz_mean_value_bridge_interface =
+  line_mean_value_gradient_onI
+  line_mean_value_gradient_onD
+  line_mean_value_and_lipschitz_gradient_imp_line_descent_bound_on_twice
+  line_mean_value_and_lipschitz_gradient_imp_smooth_upper_bound_on_twice
+  line_mean_value_and_lipschitz_gradient_imp_lipschitz_smooth_on_twice
+  line_mean_value_and_lipschitz_gradient_imp_lipschitz_smooth_convex_on_twice
+  line_mean_value_and_lipschitz_gradient_imp_smooth_convex_on_twice
+
+lemmas lipschitz_mean_value_algorithmic_results =
+  line_mean_value_lipschitz_projected_gradient_descent_function_value_gap_bound
 
 
 subsection \<open>Quadratic examples\<close>
@@ -486,11 +505,14 @@ lemmas nonnegative_quadratic_example_results =
 subsection \<open>Recommended public API\<close>
 
 text \<open>
-The following theorem groups are the recommended citation surface of the
-entry.  They intentionally contain only the main facts that downstream
-developments are most likely to reuse.
+The following theorem groups are the recommended public surface of the entry.
+The larger groups provide a stable overview for downstream developments, while
+the final citation surface gives short aliases for the main high-level
+theorems.
 
-The lower-level groups above remain available for more specialized uses.
+The lower-level groups above remain available for specialized uses, but
+downstream developments should prefer the stable aliases below when referring
+to the main convergence, residual, optimality, and linear-rate results.
 \<close>
 
 subsubsection \<open>Core infrastructure\<close>
@@ -530,6 +552,10 @@ lemmas main_projected_gradient_descent_theorems =
   projected_gradient_descent_last_gap_times_N_bound
   projected_gradient_descent_objective_nonincreasing
 
+lemmas main_lipschitz_bridge_theorems =
+  line_mean_value_and_lipschitz_gradient_imp_smooth_convex_on_twice
+  line_mean_value_lipschitz_projected_gradient_descent_function_value_gap_bound
+
 lemmas main_projected_gradient_mapping_theorems =
   projected_gradient_mapping_zero_iff_fixed_point
   projected_gradient_mapping_zero_iff_first_order_condition
@@ -560,7 +586,9 @@ lemmas main_example_theorems =
   nonnegative_quadratic_projected_gradient_descent_function_value_gap_bound
   nonnegative_quadratic_projected_gradient_descent_exists_epsilon_residual
   nonnegative_quadratic_projected_gradient_residual_zero_imp_zero
-
+  bounded_interval_quadratic_projected_gradient_descent_function_value_gap_bound
+  bounded_interval_quadratic_projected_gradient_descent_exists_epsilon_residual
+  bounded_interval_quadratic_projected_gradient_residual_zero_imp_zero
 
 subsubsection \<open>Stable aliases for citation\<close>
 
@@ -568,6 +596,9 @@ text \<open>
 The following aliases give short, stable names to the main high-level
 statements of the entry.  They are intended for use in the AFP document,
 README, and downstream developments.
+
+These aliases are the part of the public surface that should remain stable
+under later internal refactorings of the proof files.
 \<close>
 
 lemmas gradient_descent_sublinear_complexity =
@@ -597,6 +628,12 @@ lemmas projected_gradient_residual_optimality_certificate =
 lemmas projected_gradient_residual_global_min_certificate =
   projected_gradient_residual_zero_imp_global_min_on
 
+lemmas lipschitz_mean_value_smooth_convex_bridge =
+  line_mean_value_and_lipschitz_gradient_imp_smooth_convex_on_twice
+
+lemmas lipschitz_mean_value_projected_gradient_descent_sublinear_complexity =
+  line_mean_value_lipschitz_projected_gradient_descent_function_value_gap_bound
+
 lemmas strongly_convex_distance_gap_certificate =
   strongly_smooth_convex_global_min_distance_gap
 
@@ -617,9 +654,13 @@ It is useful as a compact overview of the main reusable results.
 lemmas first_order_methods_public_api =
   main_first_order_infrastructure
   main_smooth_descent_infrastructure
+  lipschitz_smoothness_interface
+  lipschitz_mean_value_bridge_interface
+  lipschitz_mean_value_algorithmic_results
   main_projection_infrastructure
   main_gradient_descent_theorems
   main_projected_gradient_descent_theorems
+  main_lipschitz_bridge_theorems
   main_projected_gradient_mapping_theorems
   main_epsilon_stationarity_theorems
   main_strong_convexity_and_linear_rate_theorems
@@ -635,20 +676,39 @@ lemmas first_order_methods_citation_surface =
   projected_gradient_mapping_global_min_certificate
   projected_gradient_residual_optimality_certificate
   projected_gradient_residual_global_min_certificate
+  lipschitz_mean_value_smooth_convex_bridge
+  lipschitz_mean_value_projected_gradient_descent_sublinear_complexity
   strongly_convex_distance_gap_certificate
   projected_gradient_descent_linear_distance_complexity
   projected_gradient_descent_linear_function_value_complexity
 
+lemmas bounded_interval_quadratic_example_results =
+  bounded_interval_real_iff
+  zero_mem_bounded_interval_real
+  closed_bounded_interval_real
+  convex_bounded_interval_real
+  quadratic_real_smooth_convex_on_bounded_interval
+  quadratic_real_strongly_smooth_convex_on_bounded_interval
+  quadratic_real_global_min_on_bounded_interval_zero
+  quadratic_real_unique_global_min_on_bounded_interval
+  bounded_interval_quadratic_projected_gradient_step_unfold
+  bounded_interval_quadratic_projected_gradient_mapping_unfold
+  bounded_interval_quadratic_projected_gradient_residual_unfold
+  bounded_interval_quadratic_projected_gradient_descent_function_value_gap_bound
+  bounded_interval_quadratic_projected_gradient_descent_distance_linear_rate
+  bounded_interval_quadratic_projected_gradient_descent_exists_small_residual_sq
+  bounded_interval_quadratic_projected_gradient_descent_exists_epsilon_residual
+  bounded_interval_quadratic_projected_gradient_residual_zero_imp_zero
 
 text \<open>
 Recommended theorem groups for downstream users:
 
-  • first_order_methods_public_api
-  • first_order_methods_citation_surface
+  • @{thm first_order_methods_public_api}
+  • @{thm first_order_methods_citation_surface}
 
-The individual aliases in first_order_methods_citation_surface are intended to
-provide stable names for the main convergence, residual, optimality, and
-linear-rate results of the entry.
+The individual aliases in @{thm first_order_methods_citation_surface} provide
+stable names for the main convergence, residual, optimality, Lipschitz-bridge,
+and linear-rate results of the entry.
 \<close>
 
 end

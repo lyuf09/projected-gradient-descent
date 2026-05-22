@@ -12,18 +12,25 @@ The main algorithmic development uses the quadratic upper-bound property
 
   f y <= f x + inner (G x) (y - x) + (L / 2) * norm (y - x)^2
 
-directly, via @{term smooth_upper_bound_on}.  This file introduces an additional
-interface that records when such a smooth upper bound is supported by a
-Lipschitz gradient field.
+directly, via @{term smooth_upper_bound_on}.  This file adds a Lipschitz-based
+interface on top of that property.
 
-The fully analytic proof that a Lipschitz gradient implies the descent lemma is
-usually obtained by restricting f to the line segment between x and y and
-integrating, or equivalently by a one-dimensional mean-value argument.  In this
-file we isolate the line-segment upper-bound certificate as a reusable interface.
-This keeps the algorithmic part stable while leaving a clean target for a later
-analytic bridge.
+The sharp textbook descent lemma is usually proved by restricting f to the
+line segment between x and y and integrating the gradient variation along that
+segment.  To keep the algorithmic convergence proofs independent of analytic
+integration infrastructure, we provide two bridge layers:
+
+  • a sharp certificate interface, @{term line_descent_bound_on}, equivalent to
+    @{term smooth_upper_bound_on};
+
+  • a mean-value bridge showing that a line mean-value certificate together
+    with a Lipschitz gradient yields the same interface with constant 2 * L.
+
+The second bridge is sufficient to connect primitive Lipschitz-gradient
+assumptions to all convergence theorems in this entry.  A later refinement may
+replace the factor 2 by the sharp constant L using an integral line-restriction
+argument.
 \<close>
-
 
 subsection \<open>Line-segment descent-lemma certificates\<close>
 
@@ -542,6 +549,215 @@ proof -
     using inner_le_abs abs_le prod_le by linarith
 qed
 
+subsection \<open>A mean-value bridge from Lipschitz gradients\<close>
+
+text \<open>
+The following interface records the one-dimensional mean-value identity along
+each feasible line segment.  It is intentionally separated from
+@{term has_gradient_on}: different developments may prove this certificate from
+their preferred differentiability infrastructure.
+
+Together with a Lipschitz gradient, this certificate gives a quadratic
+upper-bound with constant 2 * L.  This is not the sharp descent lemma, but it is
+already enough to connect primitive Lipschitz-gradient assumptions to the
+algorithmic convergence theorems in this entry.
+\<close>
+
+definition line_mean_value_gradient_on ::
+  "'a::real_inner set \<Rightarrow> ('a \<Rightarrow> real) \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> bool"
+where
+  "line_mean_value_gradient_on S f G \<longleftrightarrow>
+     (\<forall>x\<in>S. \<forall>y\<in>S.
+        \<exists>t. 0 \<le> t \<and> t \<le> 1 \<and>
+          f y - f x =
+            inner (G (x + t *\<^sub>R (y - x))) (y - x))"
+
+lemma line_mean_value_gradient_onI:
+  assumes "\<And>x y. x \<in> S \<Longrightarrow> y \<in> S \<Longrightarrow>
+    \<exists>t. 0 \<le> t \<and> t \<le> 1 \<and>
+      f y - f x =
+        inner (G (x + t *\<^sub>R (y - x))) (y - x)"
+  shows "line_mean_value_gradient_on S f G"
+  using assms
+  unfolding line_mean_value_gradient_on_def
+  by auto
+
+lemma line_mean_value_gradient_onD:
+  assumes mvt: "line_mean_value_gradient_on S f G"
+    and x: "x \<in> S"
+    and y: "y \<in> S"
+  obtains t where
+    "0 \<le> t"
+    "t \<le> 1"
+    "f y - f x =
+      inner (G (x + t *\<^sub>R (y - x))) (y - x)"
+  using assms
+  unfolding line_mean_value_gradient_on_def
+  by blast
+
+lemma line_mean_value_and_lipschitz_gradient_imp_line_descent_bound_on_twice:
+  fixes f :: "'a::real_inner \<Rightarrow> real"
+    and G :: "'a \<Rightarrow> 'a"
+  assumes lip: "lipschitz_gradient_on L S G"
+    and convex: "convex S"
+    and mvt: "line_mean_value_gradient_on S f G"
+  shows "line_descent_bound_on (2 * L) S f G"
+proof (rule line_descent_bound_onI)
+  have L_nonneg: "0 \<le> L"
+    using lip
+    by (rule lipschitz_gradient_onD_nonneg)
+
+  show "0 \<le> 2 * L"
+    using L_nonneg by simp
+next
+  fix x y
+  assume x: "x \<in> S" and y: "y \<in> S"
+
+  let ?d = "y - x"
+
+  obtain t where t_nonneg: "0 \<le> t"
+    and t_le: "t \<le> 1"
+    and mvt_eq:
+      "f y - f x =
+        inner (G (x + t *\<^sub>R ?d)) ?d"
+    using line_mean_value_gradient_onD[OF mvt x y]
+    by blast
+
+  let ?z = "x + t *\<^sub>R ?d"
+
+  have segment_bound:
+    "inner (G ?z - G x) ?d \<le> L * t * norm ?d ^ 2"
+    by (rule lipschitz_gradient_on_segment_inner_bound[
+        OF lip convex x y t_nonneg t_le])
+
+  have inner_diff:
+    "inner (G ?z - G x) ?d =
+      inner (G ?z) ?d - inner (G x) ?d"
+    by (simp add: inner_diff_left)
+
+  have inner_decomp:
+    "inner (G ?z) ?d =
+      inner (G x) ?d + inner (G ?z - G x) ?d"
+    using inner_diff by linarith
+
+  have L_nonneg: "0 \<le> L"
+    using lip
+    by (rule lipschitz_gradient_onD_nonneg)
+
+  have Lt_le_L: "L * t \<le> L"
+  proof -
+    have "L * t \<le> L * 1"
+      by (rule mult_left_mono[OF t_le L_nonneg])
+    then show ?thesis by simp
+  qed
+
+  have norm_sq_nonneg: "0 \<le> norm ?d ^ 2"
+    by simp
+
+  have product_bound:
+    "L * t * norm ?d ^ 2 \<le> L * norm ?d ^ 2"
+  proof -
+    have "(L * t) * norm ?d ^ 2 \<le> L * norm ?d ^ 2"
+      by (rule mult_right_mono[OF Lt_le_L norm_sq_nonneg])
+    then show ?thesis
+      by simp
+  qed
+
+  have inner_bound:
+    "inner (G ?z - G x) ?d \<le> L * norm ?d ^ 2"
+    using segment_bound product_bound by linarith
+
+  have value_bound:
+    "f y - f x \<le> inner (G x) ?d + L * norm ?d ^ 2"
+    using mvt_eq inner_decomp inner_bound by linarith
+
+  have coeff_eq:
+    "(2 * L / 2) * norm ?d ^ 2 = L * norm ?d ^ 2"
+    by simp
+
+  show
+    "f y \<le> f x + inner (G x) (y - x) +
+      (2 * L / 2) * norm (y - x) ^ 2"
+    using value_bound coeff_eq by linarith
+qed
+
+lemma line_mean_value_and_lipschitz_gradient_imp_smooth_upper_bound_on_twice:
+  fixes f :: "'a::real_inner \<Rightarrow> real"
+    and G :: "'a \<Rightarrow> 'a"
+  assumes lip: "lipschitz_gradient_on L S G"
+    and convex: "convex S"
+    and mvt: "line_mean_value_gradient_on S f G"
+  shows "smooth_upper_bound_on (2 * L) S f G"
+proof -
+  have line: "line_descent_bound_on (2 * L) S f G"
+    by (rule line_mean_value_and_lipschitz_gradient_imp_line_descent_bound_on_twice[
+        OF lip convex mvt])
+  show ?thesis
+    by (rule line_descent_bound_on_imp_smooth_upper_bound_on[OF line])
+qed
+
+lemma line_mean_value_and_lipschitz_gradient_imp_lipschitz_smooth_on_twice:
+  fixes f :: "'a::real_inner \<Rightarrow> real"
+    and G :: "'a \<Rightarrow> 'a"
+  assumes grad: "has_gradient_on f S G"
+    and lip: "lipschitz_gradient_on L S G"
+    and convex: "convex S"
+    and mvt: "line_mean_value_gradient_on S f G"
+  shows "lipschitz_smooth_on (2 * L) S f G"
+proof (rule lipschitz_smooth_onI)
+  show "has_gradient_on f S G"
+    using grad .
+next
+  have L_nonneg: "0 \<le> L"
+    using lip
+    by (rule lipschitz_gradient_onD_nonneg)
+
+  have L_le_twice: "L \<le> 2 * L"
+    using L_nonneg by linarith
+
+  show "lipschitz_gradient_on (2 * L) S G"
+    by (rule lipschitz_gradient_on_mono_L[OF lip L_le_twice])
+next
+  show "line_descent_bound_on (2 * L) S f G"
+    by (rule line_mean_value_and_lipschitz_gradient_imp_line_descent_bound_on_twice[
+        OF lip convex mvt])
+qed
+
+lemma line_mean_value_and_lipschitz_gradient_imp_lipschitz_smooth_convex_on_twice:
+  fixes f :: "'a::real_inner \<Rightarrow> real"
+    and G :: "'a \<Rightarrow> 'a"
+  assumes convex_f: "convex_on S f"
+    and grad: "has_gradient_on f S G"
+    and lip: "lipschitz_gradient_on L S G"
+    and convex: "convex S"
+    and mvt: "line_mean_value_gradient_on S f G"
+  shows "lipschitz_smooth_convex_on (2 * L) S f G"
+proof (rule lipschitz_smooth_convex_onI)
+  show "convex_on S f"
+    using convex_f .
+next
+  show "lipschitz_smooth_on (2 * L) S f G"
+    by (rule line_mean_value_and_lipschitz_gradient_imp_lipschitz_smooth_on_twice[
+        OF grad lip convex mvt])
+qed
+
+lemma line_mean_value_and_lipschitz_gradient_imp_smooth_convex_on_twice:
+  fixes f :: "'a::real_inner \<Rightarrow> real"
+    and G :: "'a \<Rightarrow> 'a"
+  assumes convex_f: "convex_on S f"
+    and grad: "has_gradient_on f S G"
+    and lip: "lipschitz_gradient_on L S G"
+    and convex: "convex S"
+    and mvt: "line_mean_value_gradient_on S f G"
+  shows "smooth_convex_on (2 * L) S f G"
+proof -
+  have lsc: "lipschitz_smooth_convex_on (2 * L) S f G"
+    by (rule line_mean_value_and_lipschitz_gradient_imp_lipschitz_smooth_convex_on_twice[
+        OF convex_f grad lip convex mvt])
+  show ?thesis
+    by (rule lipschitz_smooth_convex_on_imp_smooth_convex_on[OF lsc])
+qed
+
 
 subsection \<open>Algorithmic consequences through smoothness\<close>
 
@@ -626,6 +842,34 @@ proof -
     by (rule projected_gradient_descent_function_value_gap_bound[
         OF smooth_convex closed convex pgd x0_mem alpha_pos step_size
            minimizer N_pos])
+qed
+
+lemma line_mean_value_lipschitz_projected_gradient_descent_function_value_gap_bound:
+  fixes f :: "'a::{real_inner,heine_borel} \<Rightarrow> real"
+    and G :: "'a \<Rightarrow> 'a"
+  assumes convex_f: "convex_on C f"
+    and grad: "has_gradient_on f C G"
+    and lip: "lipschitz_gradient_on L C G"
+    and closed: "closed C"
+    and convex: "convex C"
+    and mvt: "line_mean_value_gradient_on C f G"
+    and pgd: "projected_gradient_descent_iterates C alpha G x"
+    and x0_mem: "x 0 \<in> C"
+    and alpha_pos: "0 < alpha"
+    and step_size: "alpha * (2 * L) \<le> 1"
+    and minimizer: "global_min_on C f xstar"
+    and N_pos: "N > 0"
+  shows
+    "f (x N) - f xstar
+      \<le> norm (x 0 - xstar) ^ 2 / (2 * alpha * real N)"
+proof -
+  have lsc: "lipschitz_smooth_convex_on (2 * L) C f G"
+    by (rule line_mean_value_and_lipschitz_gradient_imp_lipschitz_smooth_convex_on_twice[
+        OF convex_f grad lip convex mvt])
+
+  show ?thesis
+    by (rule lipschitz_smooth_convex_projected_gradient_descent_function_value_gap_bound[
+        OF lsc closed convex pgd x0_mem alpha_pos step_size minimizer N_pos])
 qed
 
 
@@ -737,16 +981,18 @@ end
 
 
 text \<open>
-The main bridge theorem provided here is
+The main bridge theorem for the sharp certificate interface is
 @{thm lipschitz_smooth_convex_on_imp_smooth_convex_on}.  It allows any
 development stated in terms of @{term smooth_convex_on} to be used with the
 more informative @{term lipschitz_smooth_convex_on} interface.
 
-The analytic task left for a later refinement is to prove
-@{term line_descent_bound_on} directly from line restrictions of differentiable
-functions together with @{term lipschitz_gradient_on}.  Once that bridge is
-proved, all descent and convergence theorems in the existing development will
-be available from primitive Lipschitz-gradient assumptions.
+The mean-value bridge
+@{thm line_mean_value_and_lipschitz_gradient_imp_smooth_convex_on_twice}
+connects primitive Lipschitz-gradient assumptions to the same convergence
+framework, with constant 2 * L.  This loses the sharp textbook constant but
+avoids committing the algorithmic library to a particular integration
+formalization.  A future refinement can recover the sharp constant L by proving
+the standard integral descent lemma along line segments.
 \<close>
 
 end

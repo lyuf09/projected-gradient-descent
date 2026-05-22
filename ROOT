@@ -22,4 +22,8 @@ session Projected_Gradient_Descent = "HOL-Analysis" +
     Examples_Quadratic
     Examples_Projected_Quadratic
     Main_Results
+    Examples_Using_Main_Results
     Projected_Gradient_Descent
+  document_files
+    "root.tex"
+    "root.bib"
