@@ -782,15 +782,15 @@ end
 
 text \<open>
 The main public theorem in this file is
-projected_gradient_descent_epsilon_stationarity_complexity.
+@{text \<open>projected_gradient_descent_epsilon_stationarity_complexity\<close>}.
 
 It is an alias for
-projected_gradient_descent_exists_epsilon_residual_to_minimizer_product.
+@{text \<open>projected_gradient_descent_exists_epsilon_residual_to_minimizer_product\<close>}.
 It states that, if the horizon N is large enough in the usual product-form
 complexity bound, then one of the first N projected-gradient iterates has
 projected-gradient residual at most eps.
 
-The theorem group projected_gradient_residual_public_interface collects the
+The theorem group @{text \<open>projected_gradient_residual_public_interface\<close>} collects the
 main residual notation, residual-complexity, and residual-optimality facts
 provided by this theory.
 \<close>

@@ -14,7 +14,7 @@ text \<open>
   the full O(1/N) function-value convergence theorem for smooth convex
   minimization.  Instead, it packages the telescoping arguments that follow
   directly from the one-step progress estimate already proved in
-  Gradient_Descent.
+  @{text \<open>Gradient_Descent\<close>}.
 
   These lemmas are meant to be reusable later for projected gradient descent
   and other descent methods.

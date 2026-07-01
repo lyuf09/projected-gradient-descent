@@ -5,22 +5,18 @@ begin
 section \<open>Strong convexity for smooth first-order methods\<close>
 
 text \<open>
-This theory introduces a first-order lower-bound interface for strong
-convexity.
+This theory introduces a first-order lower-bound interface for strong convexity.
 
 The main interface is
-
-  f y >= f x + inner (G x) (y - x) + (mu / 2) * norm (y - x)^2.
-
-This formulation is well suited to the existing development because it uses the
-same named gradient field G as the smooth-convex and projected-gradient layers.
+@{text \<open>f y >= f x + inner (G x) (y - x) + (mu / 2) * norm (y - x) ^ 2\<close>}.
+This formulation is well suited to the existing development because it uses
+the same named gradient field @{text \<open>G\<close>} as the smooth-convex and
+projected-gradient layers.
 
 The file proves three kinds of consequences:
-
-  • strong convexity implies the ordinary convex first-order lower bound;
-  • at a first-order optimal point, the function-value gap controls squared
-    distance;
-  • under positive strong convexity, global minimizers are unique.
+strong convexity implies the ordinary convex first-order lower bound; at a
+first-order optimal point, the function-value gap controls squared distance;
+under positive strong convexity, global minimizers are unique.
 
 These results are intended to feed into later linear-convergence proofs for
 gradient descent and projected gradient descent.

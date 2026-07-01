@@ -5,12 +5,12 @@ begin
 section \<open>Gradient descent sequences\<close>
 
 text \<open>
-This theory lifts the one-step descent estimates from Smooth_Convex to
+This theory lifts the one-step descent estimates from @{text \<open>Smooth_Convex\<close>} to
 gradient descent sequences.
 
 The purpose of this file is deliberately modest: it packages the recurrence
 
-  x (Suc n) = gradient_step alpha G (x n)
+  x (Suc n) = @{text \<open>gradient_step\<close>} alpha G (x n)
 
 and proves the basic monotonicity consequences that follow from the smooth
 upper-bound interface.
@@ -335,7 +335,7 @@ This file turns the pointwise gradient-step descent estimates into sequence
 statements for gradient descent.
 
 The main consequence is that, under the smooth upper-bound assumption and the
-standard step-size condition alpha * L \<le> 1, the objective values along a
+standard step-size condition that alpha * L is at most one, the objective values along a
 feasible gradient descent sequence form a nonincreasing sequence.
 \<close>
 

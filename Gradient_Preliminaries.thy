@@ -10,12 +10,11 @@ text \<open>
 This theory provides a thin optimization-oriented wrapper around Isabelle/HOL's
 existing Fréchet derivative interface.
 
-For a real-valued function on a real inner product space, saying that f has
-gradient g at x means that the Fréchet derivative of f at x is the linear map
-
-  h \<mapsto> inner h g.
-
-This is the usual gradient convention used in finite-dimensional optimization.
+For a real-valued function on a real inner product space, saying that @{text \<open>f\<close>}
+has gradient @{text \<open>g\<close>} at @{text \<open>x\<close>} means that the Fréchet derivative of
+@{text \<open>f\<close>} at @{text \<open>x\<close>} is the linear map sending a direction @{text \<open>h\<close>}
+to @{text \<open>inner h g\<close>}.  This is the usual gradient convention used in
+finite-dimensional optimization.
 \<close>
 
 
@@ -415,9 +414,8 @@ subsection \<open>Affine lines and directional derivatives\<close>
 
 text \<open>
 Gradient descent and projected gradient descent proofs often restrict a
-multivariate function to an affine line,
-
-  t \<mapsto> f (x + scaleR t d).
+multivariate function to an affine line, namely the map that sends
+@{text \<open>t\<close>} to @{text \<open>f (x + scaleR t d)\<close>}.
 
 The derivative of this one-dimensional restriction is the directional derivative
 

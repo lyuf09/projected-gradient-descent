@@ -9,7 +9,7 @@ This theory gives a basic one-dimensional quadratic example.
 
 The objective is
 
-  f x = x^2 / 2,
+  @{text \<open>f x = x^2 / 2\<close>},
 
 with gradient field
 

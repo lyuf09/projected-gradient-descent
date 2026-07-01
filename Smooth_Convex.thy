@@ -9,12 +9,10 @@ This theory introduces the smoothness layer used later for gradient descent
 and projected gradient descent.
 
 The central interface is the quadratic upper-bound property
-
-  f y \<le> f x + inner (G x) (y - x) + (L / 2) * norm (y - x)^2.
-
-This is the standard descent-lemma form of L-smoothness.  For the purposes of
-the algorithmic development, it is useful to package this property directly as
-a reusable assumption.  A later file can derive it from more primitive
+@{text \<open>f y <= f x + inner (G x) (y - x) + (L / 2) * norm (y - x) ^ 2\<close>}.
+This is the standard descent-lemma form of L-smoothness.  For the purposes
+of the algorithmic development, it is useful to package this property directly
+as a reusable assumption.  A later file can derive it from more primitive
 Lipschitz-gradient assumptions if needed.
 \<close>
 

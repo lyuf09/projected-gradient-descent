@@ -11,7 +11,7 @@ projected-gradient step.
 For a closed convex feasible set C and a stepsize alpha > 0, the projected
 gradient mapping is
 
-  (1 / alpha) * (x - P_C (x - alpha * G x)).
+  (1 / alpha) * (x - @{text \<open>P_C\<close>} (x - alpha * G x)).
 
 It measures the normalized residual of the projected-gradient fixed-point
 equation.  Equivalently, its norm is the length of one projected-gradient step,

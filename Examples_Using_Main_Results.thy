@@ -6,16 +6,16 @@ section \<open>Using the public theorem interface\<close>
 
 text \<open>
 This theory illustrates how a downstream development can use the public
-interface collected in Main_Results.
+interface collected in @{text \<open>Main_Results\<close>}.
 
 The point of this file is deliberately modest: it does not import any of the
-internal proof layers directly.  Instead, it treats Main_Results as the public
+internal proof layers directly.  Instead, it treats @{text \<open>Main_Results\<close>} as the public
 entry point of the library and shows how client developments can refer to the
 stable theorem groups and aliases collected there.
 
 This is useful as a regression test for the public API: if the internal proof
 files are later reorganized, the facts used below should remain available from
-Main_Results.
+@{text \<open>Main_Results\<close>}.
 \<close>
 
 
@@ -142,7 +142,7 @@ lemmas client_strong_convexity_and_linear_rate_results =
 subsection \<open>Concrete quadratic examples\<close>
 
 text \<open>
-The example layer can also be accessed from Main_Results.  These facts show
+The example layer can also be accessed from @{text \<open>Main_Results\<close>}.  These facts show
 how the abstract theorem surface is instantiated on a simple one-dimensional
 quadratic objective and on the nonnegative half-line constraint.
 \<close>
@@ -192,7 +192,7 @@ lemmas client_projected_gradient_descent_package =
 
 text \<open>
 This file intentionally proves no new mathematical theorem.  Its purpose is to
-document and test the public theorem surface exposed by Main_Results.  In
+document and test the public theorem surface exposed by @{text \<open>Main_Results\<close>}.  In
 particular, it shows that client developments can work with the stable aliases
 and recommended theorem groups without depending on the internal organization
 of the proof files.

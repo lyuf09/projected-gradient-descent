@@ -18,7 +18,7 @@ The file isolates four basic notions:
 The main result is the standard first-order supporting-hyperplane property:
 if f is convex and has gradient g at x, then
 
-  f x + inner g (y - x) \<le> f y
+  the affine first-order lower bound at x is below f y
 
 for every feasible y.
 
@@ -75,7 +75,7 @@ text \<open>
 For constrained convex minimization, the first-order condition at x with
 gradient g is
 
-  inner g (y - x) \<ge> 0
+  the directional inner product inner g (y - x) is nonnegative
 
 for every feasible y.
 
@@ -120,11 +120,8 @@ lemma first_order_condition_zero_iff_mem [simp]:
 subsection \<open>Supporting affine lower bounds\<close>
 
 text \<open>
-A vector g supports f at x on S if the affine function
-
-  y \<mapsto> f x + inner g (y - x)
-
-is a global lower bound for f on S.
+A vector g supports f at x on S if the corresponding affine first-order
+approximation is a global lower bound for f on S.
 
 For differentiable convex functions, g will later be the gradient at x.
 \<close>

@@ -10,7 +10,7 @@ text \<open>
 This theory gives concrete constrained examples for the projected-gradient
 descent library.
 
-The objective is the one-dimensional quadratic f x = x^2 / 2 with gradient
+The objective is the one-dimensional quadratic @{text \<open>f x = x^2 / 2\<close>} with gradient
 field G x = x.  The previous example theory instantiated the smoothness,
 convexity, and strong-convexity interfaces for this objective.  Here we use
 those facts to instantiate the projected-gradient mapping residual bounds and
@@ -123,7 +123,7 @@ subsection \<open>The nonnegative half-line\<close>
 
 text \<open>
 We now specialize the previous template to the concrete closed convex feasible
-set [0,\<infinity>).  This is a simple constrained problem whose minimizer lies on the
+set [0,∞).  This is a simple constrained problem whose minimizer lies on the
 feasible set and whose projected-gradient residual certificates follow directly
 from the abstract theory.
 \<close>

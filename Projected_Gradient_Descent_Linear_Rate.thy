@@ -14,24 +14,14 @@ The proof uses the projected one-step distance inequality from the projected
 gradient descent development and the strong-convexity distance-gap lower bound.
 
 The resulting contraction is
-
-  (1 + alpha * mu) * norm (x (Suc n) - xstar)^2
-    <= norm (x n - xstar)^2.
-
-Equivalently, with
-
-  q = 1 / (1 + alpha * mu),
-
-we obtain
-
-  norm (x N - xstar)^2
-    <= q^N * norm (x 0 - xstar)^2.
+@{text \<open>(1 + alpha * mu) * norm (x (Suc n) - xstar) ^ 2 <= norm (x n - xstar) ^ 2\<close>}.
+Equivalently, with @{text \<open>q = 1 / (1 + alpha * mu)\<close>}, we obtain
+@{text \<open>norm (x N - xstar) ^ 2 <= q^N * norm (x 0 - xstar) ^ 2\<close>}.
 
 This is not intended to be the sharpest possible textbook contraction factor.
 Its purpose is to provide a stable Isabelle-friendly linear rate that follows
 directly from the existing projected one-step inequality.
 \<close>
-
 
 subsection \<open>The linear-rate contraction factor\<close>
 

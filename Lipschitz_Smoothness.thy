@@ -5,31 +5,14 @@ begin
 section \<open>Lipschitz gradients and smoothness interfaces\<close>
 
 text \<open>
-This theory packages the relationship between Lipschitz gradient fields and
-the smooth upper-bound interface used throughout the descent proofs.
+This theory connects the reusable smooth quadratic upper-bound interface with
+a more primitive Lipschitz-gradient assumption.
 
-The main algorithmic development uses the quadratic upper-bound property
-
-  f y <= f x + inner (G x) (y - x) + (L / 2) * norm (y - x)^2
-
-directly, via @{term smooth_upper_bound_on}.  This file adds a Lipschitz-based
-interface on top of that property.
-
-The sharp textbook descent lemma is usually proved by restricting f to the
-line segment between x and y and integrating the gradient variation along that
-segment.  To keep the algorithmic convergence proofs independent of analytic
-integration infrastructure, we provide two bridge layers:
-
-  • a sharp certificate interface, @{term line_descent_bound_on}, equivalent to
-    @{term smooth_upper_bound_on};
-
-  • a mean-value bridge showing that a line mean-value certificate together
-    with a Lipschitz gradient yields the same interface with constant 2 * L.
-
-The second bridge is sufficient to connect primitive Lipschitz-gradient
-assumptions to all convergence theorems in this entry.  A later refinement may
-replace the factor 2 by the sharp constant L using an integral line-restriction
-argument.
+The main bridge is the standard descent lemma along line segments:
+@{text \<open>f y <= f x + inner (G x) (y - x) + (L / 2) * norm (y - x) ^ 2\<close>}.
+The theory packages this bridge so that later convergence proofs can use the
+same smoothness interface regardless of whether smoothness is assumed directly
+or derived from a Lipschitz-gradient condition.
 \<close>
 
 subsection \<open>Line-segment descent-lemma certificates\<close>

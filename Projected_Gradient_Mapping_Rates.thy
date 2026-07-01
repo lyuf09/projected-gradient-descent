@@ -974,16 +974,16 @@ end
 text \<open>
 The main reusable consequences of this theory are:
 
-  • projected_gradient_descent_sum_mapping_norm_sq_bound;
-  • projected_gradient_descent_average_mapping_norm_sq_bound;
-  • projected_gradient_descent_exists_small_mapping_norm_sq;
-  • projected_gradient_descent_exists_small_mapping_norm_sq_to_minimizer.
+  • @{text \<open>projected_gradient_descent_sum_mapping_norm_sq_bound\<close>};
+  • @{text \<open>projected_gradient_descent_average_mapping_norm_sq_bound\<close>};
+  • @{text \<open>projected_gradient_descent_exists_small_mapping_norm_sq\<close>};
+  • @{text \<open>projected_gradient_descent_exists_small_mapping_norm_sq_to_minimizer\<close>}.
 
 Together, these state that the squared projected-gradient mapping residual
 satisfies finite-sum, average, and finite-horizon small-residual bounds along
 projected-gradient descent.
 
-The theorem group projected_gradient_mapping_rate_engine collects the main
+The theorem group @{text \<open>projected_gradient_mapping_rate_engine\<close>} collects the main
 technical rate interface of this theory.
 \<close>
 
