@@ -703,10 +703,10 @@ lemmas bounded_interval_quadratic_example_results =
 text \<open>
 Recommended theorem groups for downstream users:
 
-  • @{thm first_order_methods_public_api}
-  • @{thm first_order_methods_citation_surface}
+  • @{text first_order_methods_public_api}
+  • @{text first_order_methods_citation_surface}
 
-The individual aliases in @{thm first_order_methods_citation_surface} provide
+The individual aliases in @{text first_order_methods_citation_surface} provide
 stable names for the main convergence, residual, optimality, Lipschitz-bridge,
 and linear-rate results of the entry.
 \<close>

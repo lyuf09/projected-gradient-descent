@@ -3,7 +3,7 @@
 \usepackage[T1]{fontenc}
 \usepackage{isabelle,isabellesym}
 \usepackage{amsmath,amssymb}
-\usepackage{hyperref}
+\usepackage{cite}
 
 \begin{document}
 
@@ -12,85 +12,46 @@
 \maketitle
 
 \begin{abstract}
-This entry develops reusable Isabelle/HOL infrastructure for first-order
-methods in smooth convex optimization.  The central application is
-projected-gradient descent, but the development is organized around
-general-purpose interfaces for gradients, first-order convexity certificates,
-smooth quadratic upper bounds, descent and telescoping arguments, projection
-geometry, projected-gradient mappings, residual certificates, strong
-convexity, and linear convergence rates.
-
-The main purpose of the entry is not only to formalize a single convergence
-proof, but to separate the analytic, geometric, and algorithmic components
-of first-order convergence arguments into reusable Isabelle/HOL layers.
-The resulting library can be used as a basis for future formalizations of
-constrained first-order optimization methods.
+This entry develops reusable Isabelle/HOL infrastructure for first-order methods in smooth convex optimization.
+The central application is projected-gradient descent, but the development is organized around general-purpose interfaces for gradients, first-order convexity certificates, smooth quadratic upper bounds, descent and telescoping arguments, projection geometry, projected-gradient mappings, residual certificates, strong convexity, and linear convergence rates.
+The main purpose of the entry is not only to formalize a single convergence proof, but to separate the analytic, geometric, and algorithmic components of first-order convergence arguments into reusable Isabelle/HOL layers.
+The resulting library can be used as a basis for future formalizations of constrained first-order optimization methods.
 \end{abstract}
 
 \tableofcontents
 
 \section{Introduction}
 
-First-order methods are among the basic algorithmic tools of convex
-optimization.  Their convergence proofs are usually built from a small
-number of reusable ingredients: first-order convexity inequalities, smooth
-quadratic upper bounds, one-step descent estimates, telescoping arguments,
-and, in the constrained case, projection inequalities.  This entry formalizes
-these ingredients in Isabelle/HOL and combines them to obtain convergence
-guarantees for gradient descent and projected-gradient descent.
+First-order methods are among the basic algorithmic tools of convex optimization.
+Their convergence proofs are usually built from a small number of reusable ingredients: first-order convexity inequalities, smooth quadratic upper bounds, one-step descent estimates, telescoping arguments, and, in the constrained case, projection inequalities.
+This entry formalizes these ingredients in Isabelle/HOL and combines them to obtain convergence guarantees for gradient descent and projected-gradient descent.
 
-The focus of the development is smooth convex optimization.  In the
-unconstrained case, the main algorithmic object is the gradient step.  In
-the constrained case, the main object is the projected-gradient step, together
-with the associated projected-gradient mapping.  The projected-gradient
-mapping plays the role of a constrained residual: its vanishing characterizes
-a projected-gradient fixed point and, under convexity assumptions, a global
-minimizer.  The entry also proves finite-horizon residual estimates, which
-give an explicit approximate-stationarity certificate for projected-gradient
-descent.
+The focus of the development is smooth convex optimization.
+In the unconstrained case, the main algorithmic object is the gradient step.
+In the constrained case, the main object is the projected-gradient step, together with the associated projected-gradient mapping.
+The projected-gradient mapping plays the role of a constrained residual: its vanishing characterizes a projected-gradient fixed point and, under convexity assumptions, a global minimizer.
 
-The development is intended as a reusable library rather than a standalone
-formalization of one theorem.  The theories are organized so that the
-algorithm-independent parts, such as descent and telescoping lemmas, are
-separated from gradient-specific and projection-specific arguments.  This
-separation is meant to make the entry useful for later formalizations of
-other first-order methods.
+The entry also proves finite-horizon residual estimates, which give an explicit approximate-stationarity certificate for projected-gradient descent.
+The development is intended as a reusable library rather than a standalone formalization of one theorem.
+The theories are organized so that the algorithm-independent parts, such as descent and telescoping lemmas, are separated from gradient-specific and projection-specific arguments.
+This separation is meant to make the entry useful for later formalizations of other first-order methods.
 
-The mathematical presentation follows standard references on convex
-optimization and first-order methods, such as
-\cite{Nesterov2004,Nesterov2018,Beck2017,Bertsekas1999}.  The entry also builds on the
-existing Isabelle/HOL infrastructure for analysis, convexity, and projections.
+The mathematical presentation follows standard references on convex optimization and first-order methods, such as \cite{Nesterov2004,Nesterov2018,Beck2017,Bertsekas1999}.
+The entry also builds on the existing Isabelle/HOL infrastructure for analysis, convexity, and projections.
 
 \section{Main contributions}
 
 The main contributions of the entry are as follows.
 
 \begin{itemize}
-  \item It provides reusable gradient and first-order convexity interfaces
-  for smooth convex optimization in Isabelle/HOL.
-
-  \item It separates analytic smoothness certificates from algorithmic
-  convergence proofs through a quadratic smooth upper-bound interface and
-  related line-descent formulations.
-
-  \item It develops an algorithm-independent descent layer based on
-  telescoping and averaging arguments, so that one-step progress estimates
-  can be reused in convergence proofs for first-order methods.
-
-  \item It formalizes convergence proofs for gradient descent and
-  projected-gradient descent under smooth convex assumptions.
-
-  \item It develops projection geometry and projected-gradient mapping
-  residuals as reusable tools for constrained smooth convex optimization.
-
-  \item It proves finite-horizon residual and epsilon-stationarity
-  certificates for projected-gradient descent.
-
-  \item It adds strong-convexity refinements, including distance-gap
-  estimates and linear-rate convergence results.
-
-  \item It provides concrete quadratic examples and a public theorem
-  interface intended for downstream developments.
+  \item It provides reusable gradient and first-order convexity interfaces for smooth convex optimization in Isabelle/HOL.
+  \item It separates analytic smoothness certificates from algorithmic convergence proofs through a quadratic smooth upper-bound interface and related line-descent formulations.
+  \item It develops an algorithm-independent descent layer based on telescoping and averaging arguments, so that one-step progress estimates can be reused in convergence proofs for first-order methods.
+  \item It formalizes convergence proofs for gradient descent and projected-gradient descent under smooth convex assumptions.
+  \item It develops projection geometry and projected-gradient mapping residuals as reusable tools for constrained smooth convex optimization.
+  \item It proves finite-horizon residual and epsilon-stationarity certificates for projected-gradient descent.
+  \item It adds strong-convexity refinements, including distance-gap estimates and linear-rate convergence results.
+  \item It provides concrete quadratic examples and a public theorem interface intended for downstream developments.
 \end{itemize}
 
 \section{Structure of the development}
@@ -98,250 +59,64 @@ The main contributions of the entry are as follows.
 The formalization is organized into several layers.
 
 \paragraph{Analytic and convexity interfaces.}
-The theories \texttt{Gradient\_Preliminaries} and
-\texttt{Convex\_Differentiable} contain the basic gradient and first-order
-convexity infrastructure used throughout the entry.  They isolate the
-first-order inequalities needed in convergence proofs from the later
-algorithmic arguments.
+The theories \texttt{Gradient\_Preliminaries} and \texttt{Convex\_Differentiable} contain the basic gradient and first-order convexity infrastructure used throughout the entry.
+They isolate the first-order inequalities needed in convergence proofs from the later algorithmic arguments.
 
 \paragraph{Smooth upper bounds and descent estimates.}
-The theories \texttt{Smooth\_Convex} and \texttt{Lipschitz\_Smoothness}
-develop the smoothness interface.  The central object is the standard
-quadratic upper bound for smooth functions.  This upper bound is the main
-tool used to derive one-step progress estimates for gradient descent and
-projected-gradient descent.
+The theories \texttt{Smooth\_Convex} and \texttt{Lipschitz\_Smoothness} develop the smoothness interface.
+The central object is the standard quadratic upper bound for smooth functions.
+This upper bound is the main tool used to derive one-step progress estimates for gradient descent and projected-gradient descent.
 
 \paragraph{Algorithm-independent descent tools.}
-The theory \texttt{Abstract\_Descent} contains telescoping, summability,
-and averaging lemmas.  These lemmas are deliberately separated from any
-particular algorithm.  Once an algorithm supplies a suitable one-step
-progress inequality, the same abstract descent layer can be used to obtain
-finite-horizon convergence estimates.
+The theory \texttt{Abstract\_Descent} contains telescoping, summability, and averaging lemmas.
+These lemmas are deliberately separated from any particular algorithm.
+Once an algorithm supplies a suitable one-step progress inequality, the same abstract descent layer can be used to obtain finite-horizon convergence estimates.
 
 \paragraph{Gradient descent.}
-The theories \texttt{Gradient\_Descent}, \texttt{Gradient\_Descent\_Rates},
-and \texttt{Gradient\_Descent\_Convergence} instantiate the smoothness and
-descent infrastructure for the ordinary gradient method.  They prove the
-standard sublinear function-value estimates for smooth convex minimization.
+The theories \texttt{Gradient\_Descent}, \texttt{Gradient\_Descent\_Rates}, and \texttt{Gradient\_Descent\_Convergence} instantiate the smoothness and descent infrastructure for the ordinary gradient method.
+They prove the standard sublinear function-value estimates for smooth convex minimization.
 
 \paragraph{Projection geometry and projected-gradient descent.}
-The theories \texttt{Projection\_Geometry} and
-\texttt{Projection\_Optimization} collect the projection inequalities and
-variational characterizations needed for constrained optimization.  The
-theory \texttt{Projected\_Gradient\_Descent\_Convergence} then proves the
-main convergence results for projected-gradient descent over a closed convex
-set.
+The theories \texttt{Projection\_Geometry} and \texttt{Projection\_Optimization} collect the projection inequalities and variational characterizations needed for constrained optimization.
+The theory \texttt{Projected\_Gradient\_Descent\_Convergence} then proves the main convergence results for projected-gradient descent over a closed convex set.
 
 \paragraph{Projected-gradient mappings and residual certificates.}
-The theories \texttt{Projected\_Gradient\_Mapping},
-\texttt{Projected\_Gradient\_Mapping\_Rates}, and
-\texttt{Projected\_Gradient\_Descent\_Residual\_Convergence} develop the
-projected-gradient mapping as a constrained first-order residual.  This part
-of the entry proves fixed-point and optimality characterizations, summability
-and averaging estimates for the residual norm, and finite-time
-epsilon-stationarity certificates.
+The theories \texttt{Projected\_Gradient\_Mapping}, \texttt{Projected\_Gradient\_Mapping\_Rates}, and \texttt{Projected\_Gradient\_Descent\_Residual\_Convergence} develop the projected-gradient mapping as a constrained first-order residual.
+This part of the entry proves fixed-point and optimality characterizations, summability and averaging estimates for the residual norm, and finite-time epsilon-stationarity certificates.
 
 \paragraph{Strong convexity and linear convergence.}
-The theories \texttt{Strong\_Convex} and
-\texttt{Projected\_Gradient\_Descent\_Linear\_Rate} formalize the
-strong-convexity refinements.  These results upgrade the convex convergence
-statements to linear-rate estimates under the usual strong-convexity and
-smoothness assumptions.
+The theories \texttt{Strong\_Convex} and \texttt{Projected\_Gradient\_Descent\_Linear\_Rate} formalize the strong-convexity refinements.
+These results upgrade the convex convergence statements to linear-rate estimates under the usual strong-convexity and smoothness assumptions.
 
 \paragraph{Examples and public interface.}
-The example theories instantiate the abstract interfaces on simple quadratic
-objectives.  The theory \texttt{Main\_Results} collects the most important
-theorem groups and is intended to be the main import target for downstream
-developments.  The theory \texttt{Examples\_Using\_Main\_Results} demonstrates
-how a client development can use the stable public theorem surface without
-importing the lower-level proof files directly.  The final umbrella theory
-\texttt{Projected\_Gradient\_Descent} imports the complete entry.
-
-\section{Gradient and convexity interfaces}
-
-The first layer of the entry provides the basic analytic vocabulary for
-gradient-based optimization.  Instead of hard-coding a particular derivative
-definition into each convergence proof, the development works with an
-abstract gradient interface.  This makes the later results easier to reuse
-with different concrete differentiability assumptions.
-
-The convexity layer formalizes the first-order inequality for differentiable
-convex functions.  Informally, for a convex differentiable function \(f\)
-with gradient \(G\), one has
-\[
-  f(y) \geq f(x) + \langle G(x), y - x\rangle.
-\]
-This inequality is the main bridge between local first-order information and
-global objective-value estimates.  It is used both in the unconstrained
-gradient-descent proofs and in the constrained projected-gradient arguments.
-
-\section{Smooth upper bounds and descent estimates}
-
-Smoothness is represented through the usual quadratic upper bound.  In
-informal notation, the smoothness interface states that
-\[
-  f(y) \leq f(x) + \langle G(x), y - x\rangle
-        + \frac{L}{2}\|y-x\|^2.
-\]
-This inequality is the basic descent tool for first-order methods.  When
-\(y\) is chosen as a gradient or projected-gradient step, the quadratic upper
-bound gives a one-step decrease estimate.
-
-The formalization keeps this smooth upper-bound interface separate from the
-algorithmic convergence proofs.  This is useful because many first-order
-methods share the same proof pattern: first prove a local one-step progress
-inequality, then use an abstract telescoping argument to obtain a global
-finite-horizon rate.
-
-The entry also provides a Lipschitz-smoothness layer.  In particular, it
-records the equivalence between the line-descent certificate and the smooth
-upper-bound interface, and it includes a mean-value bridge showing how a
-line mean-value certificate together with a Lipschitz gradient yields the
-same smoothness interface with constant \(2L\).  This bridge is deliberately
-separated from the algorithmic convergence layer, so that later refinements
-can replace it by a sharper integral descent-lemma proof without changing
-the projected-gradient convergence theorems.
-
-\section{Gradient descent}
-
-For unconstrained smooth convex minimization, the entry formalizes the
-ordinary gradient step and proves the standard sublinear convergence
-estimates.  The gradient-descent development serves two roles.  First, it
-provides a basic formalization of a classical first-order method.  Second,
-it acts as a simpler model for the later projected-gradient development:
-the same smoothness and descent infrastructure is reused, but without the
-additional projection geometry.
-
-The convergence proof follows the standard structure.  The smooth upper bound
-gives a one-step descent inequality.  Convexity relates the gradient term to
-the objective gap.  Finally, a telescoping argument turns the one-step
-inequality into a finite-horizon convergence rate.
-
-\section{Projection geometry and projected-gradient descent}
-
-The constrained part of the entry is built around metric projection onto a
-closed convex set.  The projection step is characterized by a variational
-inequality.  Informally, if \(p\) is the projection of \(z\) onto a closed
-convex set \(C\), then
-\[
-  \langle z - p, u - p\rangle \leq 0
-\]
-for all \(u \in C\).  This inequality is the geometric replacement for the
-unconstrained identity used in gradient descent.
-
-Projected-gradient descent combines the smooth upper bound with this
-projection inequality.  The projected step has the form
-\[
-  x^+ = \operatorname{proj}_C(x - \alpha G(x)).
-\]
-The formal proof separates the projection geometry from the descent
-argument.  This separation is important for reusability: the same projection
-lemmas can be used independently of the particular convergence theorem in
-which they appear.
-
-The entry proves function-value convergence guarantees for projected-gradient
-descent under the standard smooth convex assumptions and a suitable
-stepsize condition.
-
-\section{Projected-gradient mappings}
-
-The projected-gradient mapping is the central constrained residual used in
-this entry.  For stepsize \(\alpha > 0\), it is informally given by
-\[
-  \mathcal{G}_{\alpha}(x)
-    = \frac{1}{\alpha}
-      \left(x - \operatorname{proj}_C(x - \alpha G(x))\right).
-\]
-In the unconstrained case, this residual reduces to the ordinary gradient.
-In the constrained case, it measures the failure of \(x\) to be a fixed point
-of the projected-gradient step.
-
-The entry formalizes the connection between zero projected-gradient mapping,
-projected-gradient fixed points, variational inequalities, and global
-optimality for convex problems.  It also proves finite-horizon residual
-estimates.  A typical consequence is that, among the first \(N\) iterates
-of projected-gradient descent, at least one iterate has small
-projected-gradient residual, with an explicit bound depending on the initial
-objective gap, the stepsize, and \(N\).
-
-This residual layer is one of the main reusable components of the entry.
-It packages convergence not only as a function-value guarantee, but also as
-an approximate first-order stationarity certificate for constrained smooth
-convex optimization.
-
-\section{Strong convexity and linear convergence}
-
-The entry also formalizes a strong-convexity layer.  Strong convexity gives
-quantitative control of the distance to the minimizer in terms of objective
-gaps and first-order certificates.  Under the usual combination of smoothness
-and strong convexity assumptions, projected-gradient descent satisfies a
-linear convergence estimate.
-
-This part of the development complements the sublinear convex theory.  The
-convex results establish the basic \(O(1/N)\)-type finite-horizon behavior,
-while the strongly convex results provide the corresponding linear-rate
-refinement.
-
-\section{Examples}
-
-The example theories instantiate the abstract interfaces on quadratic
-objectives.  These examples serve as compact regression tests for the
-library: they show how the smoothness, convexity, projection, residual, and
-linear-rate interfaces can be used in concrete problems.
-
-The constrained quadratic examples include both a nonnegative half-line
-constraint and a bounded interval constraint.  The nonnegative half-line
-example gives a simple setting in which projection geometry,
-projected-gradient mappings, function-value estimates, and
-epsilon-stationarity certificates can all be instantiated explicitly.
-
-The bounded interval example further illustrates the reusable projection
-layer: the convergence and residual results are obtained through the general
-closed-convex projection interface, rather than through an ad hoc
-closed-form projection calculation.
+The example theories instantiate the abstract interfaces on simple quadratic objectives.
+The theory \texttt{Main\_Results} collects the most important theorem groups and is intended to be the main import target for downstream developments.
+The theory \texttt{Examples\_Using\_Main\_Results} demonstrates how a client development can use the stable public theorem surface without importing the lower-level proof files directly.
+The final umbrella theory \texttt{Projected\_Gradient\_Descent} imports the complete entry.
 
 \section{Related work}
 
-The Isabelle/HOL libraries already provide substantial infrastructure for
-analysis, convex sets, convex functions, and metric projections.  This entry
-builds on that background and develops an algorithmic layer for first-order
-methods in smooth convex optimization.
+The Isabelle/HOL libraries already provide substantial infrastructure for analysis, convex sets, convex functions, and metric projections.
+This entry builds on that background and develops an algorithmic layer for first-order methods in smooth convex optimization.
 
-The AFP entry \emph{Unconstrained Optimization} formalizes minimizers,
-strict and isolated local minimizers, and first- and second-order optimality
-conditions for unconstrained problems \cite{UnconstrainedOptimizationAFP}.
-The present development is complementary: it focuses not on local optimality
-conditions for unconstrained problems, but on convergence proofs for gradient
-descent and projected-gradient descent, together with projection geometry,
-projected-gradient mappings, and residual certificates for constrained smooth
-convex optimization.
+The AFP entry \emph{Unconstrained Optimization} formalizes minimizers, strict and isolated local minimizers, and first- and second-order optimality conditions for unconstrained problems \cite{UnconstrainedOptimizationAFP}.
+The present development is complementary: it focuses not on local optimality conditions for unconstrained problems, but on convergence proofs for gradient descent and projected-gradient descent, together with projection geometry, projected-gradient mappings, and residual certificates for constrained smooth convex optimization.
 
-Outside Isabelle/HOL, Li et al. formalize convergence rates of several
-first-order algorithms for convex optimization in Lean4
-\cite{FirstOrderMethodsLean}.  Their work develops Lean infrastructure for
-gradients, subgradients, differentiable convex functions, and convergence
-proofs for a range of first-order algorithms.  The present entry contributes
-complementary Isabelle/HOL/AFP infrastructure, with particular emphasis on
-projection geometry, projected-gradient descent, projected-gradient mappings,
-and residual certificates for constrained smooth convex optimization.
+Outside Isabelle/HOL, Li et al. formalize convergence rates of several first-order algorithms for convex optimization in Lean4 \cite{FirstOrderMethodsLean}.
+Their work develops Lean infrastructure for gradients, subgradients, differentiable convex functions, and convergence proofs for a range of first-order algorithms.
+The present entry contributes complementary Isabelle/HOL/AFP infrastructure, with particular emphasis on projection geometry, projected-gradient descent, projected-gradient mappings, and residual certificates for constrained smooth convex optimization.
 
 \section{Conclusion}
 
-This entry formalizes a reusable Isabelle/HOL layer for smooth convex
-first-order optimization.  Its main contributions are the separation of
-gradient, smoothness, descent, projection, and residual arguments; convergence
-proofs for gradient descent and projected-gradient descent; projected-gradient
-mapping optimality and residual estimates; and strong-convexity linear-rate
-refinements.
-
+This entry formalizes a reusable Isabelle/HOL layer for smooth convex first-order optimization.
+Its main contributions are the separation of gradient, smoothness, descent, projection, and residual arguments; convergence proofs for gradient descent and projected-gradient descent; projected-gradient mapping optimality and residual estimates; and strong-convexity linear-rate refinements.
 The structure of the development is intended to support future extensions.
-Natural next steps include proximal-gradient methods, conditional-gradient
-methods, accelerated methods, additional constrained examples such as box or
-polyhedral constraints, and sharper analytic bridges from Lipschitz-gradient assumptions to the quadratic
-upper-bound interface, for example via integral descent-lemma arguments along
-line segments.
 
-\bibliographystyle{plain}
+Natural next steps include proximal-gradient methods, conditional-gradient methods, accelerated methods, additional constrained examples such as box or polyhedral constraints, and sharper analytic bridges from Lipschitz-gradient assumptions to the quadratic upper-bound interface, for example via integral descent-lemma arguments along line segments.
+
+\input{session}
+
+\bibliographystyle{abbrv}
 \bibliography{root}
 
 \end{document}
