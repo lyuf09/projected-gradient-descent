@@ -8,6 +8,8 @@ The project is structured as an AFP-oriented entry under the theme:
 
 **Projected-gradient descent and reusable descent/projection convergence infrastructure for smooth convex optimization in Isabelle/HOL.**
 
+**Submission status:** Submitted to the Archive of Formal Proofs on July 2, 2026; currently under review.
+
 ## Overview
 
 The entry formalizes a reusable fragment of smooth convex optimization theory.
@@ -235,7 +237,7 @@ The internal proof files are organized into layers, while `Main_Results` exposes
 
 ### AFP-oriented structure
 
-The repository is structured as an Isabelle session with a `ROOT` file, an AFP-style document, public theorem interface, examples, and an umbrella theory.  The goal is to make the formalization suitable for AFP submission after final build checks and style cleanup.
+The repository is structured as an Isabelle session with a `ROOT` file, an AFP-style document, public theorem interface, examples, and an umbrella theory. The entry was submitted to the Archive of Formal Proofs on July 2, 2026; the structure is being kept stable during AFP review and for future maintenance.
 
 ### Stability for future extensions
 
@@ -278,11 +280,11 @@ The current development contains:
 * an umbrella theory for the whole entry;
 * an AFP-oriented document and bibliography.
 
-At this stage, the development is intended to be kept stable for AFP submission. Further work should focus on documentation polish, theorem naming stability, and build hygiene rather than adding unrelated algorithms.
+The development was submitted to the Archive of Formal Proofs on July 2, 2026 and is currently under review. During review and future maintenance, the theorem surface should remain stable; further work should focus on requested revisions, documentation polish, theorem naming stability, and build hygiene rather than adding unrelated algorithms.
 
-## Suggested final checks before AFP submission
+## Build and maintenance checks during AFP review
 
-Before submission, check the following.
+During AFP review and for future maintenance, use the following checks.
 
 1. Run a full Isabelle build:
 
